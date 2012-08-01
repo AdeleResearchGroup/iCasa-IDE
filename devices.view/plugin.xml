@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="Devices Category"
+            id="devices.view">
+      </category>
+      <view
+            name="Devices View"
+            icon="icons/device.png"
+            category="devices.view"
+            class="fr.liglab.devices.view.views.DevicesView"
+            id="devices.view.views.DevicesView">
+      </view>
+   </extension>
+
+</plugin>

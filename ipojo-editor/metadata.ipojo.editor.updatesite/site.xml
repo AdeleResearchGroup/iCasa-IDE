@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/metadata.ipojo.editor.feature_1.0.0.201208011424.jar" id="metadata.ipojo.editor.feature" version="1.0.0.201208011424">
+      <category name="ipojo_editor"/>
+   </feature>
+   <category-def name="ipojo_editor" label="IPOJO Editor">
+      <description>
+         IPOJO Editor
+      </description>
+   </category-def>
+</site>

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<genmodel:GenModel xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+    xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" modelDirectory="/ipojo-model/src"
+    modelPluginID="ipojo-model" modelName="Ipojo-core" importerID="org.eclipse.xsd.ecore.importer"
+    complianceLevel="6.0" copyrightFields="false">
+  <foreignModel>../../ipojo-schema/core.xsd</foreignModel>
+  <genPackages prefix="Felix" basePackage="org.apache" resource="XML" disposableProviderFactory="true"
+      fileExtensions="xml" ecorePackage="felix.ecore#/">
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="felix.ecore#//PolicyType">
+      <genEnumLiterals ecoreEnumLiteral="felix.ecore#//PolicyType/dynamic"/>
+      <genEnumLiterals ecoreEnumLiteral="felix.ecore#//PolicyType/static"/>
+      <genEnumLiterals ecoreEnumLiteral="felix.ecore#//PolicyType/dynamicPriority"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="felix.ecore#//ScopeType">
+      <genEnumLiterals ecoreEnumLiteral="felix.ecore#//ScopeType/global"/>
+      <genEnumLiterals ecoreEnumLiteral="felix.ecore#//ScopeType/composite"/>
+      <genEnumLiterals ecoreEnumLiteral="felix.ecore#//ScopeType/compositeGlobal"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="felix.ecore#//TransitionType">
+      <genEnumLiterals ecoreEnumLiteral="felix.ecore#//TransitionType/validate"/>
+      <genEnumLiterals ecoreEnumLiteral="felix.ecore#//TransitionType/invalidate"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="felix.ecore#//TypeType">
+      <genEnumLiterals ecoreEnumLiteral="felix.ecore#//TypeType/bind"/>
+      <genEnumLiterals ecoreEnumLiteral="felix.ecore#//TypeType/unbind"/>
+      <genEnumLiterals ecoreEnumLiteral="felix.ecore#//TypeType/modified"/>
+    </genEnums>
+    <genDataTypes ecoreDataType="felix.ecore#//PolicyTypeObject"/>
+    <genDataTypes ecoreDataType="felix.ecore#//ScopeTypeObject"/>
+    <genDataTypes ecoreDataType="felix.ecore#//TransitionTypeObject"/>
+    <genDataTypes ecoreDataType="felix.ecore#//TypeTypeObject"/>
+    <genClasses ecoreClass="felix.ecore#//CallbackType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//CallbackType/method"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//CallbackType/transition"/>
+    </genClasses>
+    <genClasses ecoreClass="felix.ecore#//ComponentType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EAttribute felix.ecore#//ComponentType/group"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference felix.ecore#//ComponentType/callback"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference felix.ecore#//ComponentType/provides"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference felix.ecore#//ComponentType/requires"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference felix.ecore#//ComponentType/properties"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference felix.ecore#//ComponentType/controller"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//ComponentType/any"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//ComponentType/architecture"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//ComponentType/classname"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//ComponentType/factoryMethod"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//ComponentType/immediate"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//ComponentType/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//ComponentType/public"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//ComponentType/version"/>
+    </genClasses>
+    <genClasses ecoreClass="felix.ecore#//ControllerType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//ControllerType/field"/>
+    </genClasses>
+    <genClasses ecoreClass="felix.ecore#//DependencyCallbackType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//DependencyCallbackType/method"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//DependencyCallbackType/type"/>
+    </genClasses>
+    <genClasses ecoreClass="felix.ecore#//DocumentRoot">
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//DocumentRoot/mixed"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference felix.ecore#//DocumentRoot/xMLNSPrefixMap"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference felix.ecore#//DocumentRoot/xSISchemaLocation"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference felix.ecore#//DocumentRoot/callback"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference felix.ecore#//DocumentRoot/component"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference felix.ecore#//DocumentRoot/controller"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference felix.ecore#//DocumentRoot/handler"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference felix.ecore#//DocumentRoot/instance"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference felix.ecore#//DocumentRoot/ipojo"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference felix.ecore#//DocumentRoot/properties"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference felix.ecore#//DocumentRoot/provides"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference felix.ecore#//DocumentRoot/requires"/>
+    </genClasses>
+    <genClasses ecoreClass="felix.ecore#//HandlerType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EAttribute felix.ecore#//HandlerType/group"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//HandlerType/any"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//HandlerType/architecture"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//HandlerType/classname"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//HandlerType/level"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//HandlerType/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//HandlerType/namespace"/>
+    </genClasses>
+    <genClasses ecoreClass="felix.ecore#//InstancePropertyType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference felix.ecore#//InstancePropertyType/property"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//InstancePropertyType/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//InstancePropertyType/type"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//InstancePropertyType/value"/>
+    </genClasses>
+    <genClasses ecoreClass="felix.ecore#//InstanceType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EAttribute felix.ecore#//InstanceType/group"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference felix.ecore#//InstanceType/property"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//InstanceType/component"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//InstanceType/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//InstanceType/version"/>
+    </genClasses>
+    <genClasses ecoreClass="felix.ecore#//IpojoType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EAttribute felix.ecore#//IpojoType/group"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference felix.ecore#//IpojoType/handler"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference felix.ecore#//IpojoType/instance"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference felix.ecore#//IpojoType/component"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//IpojoType/any"/>
+    </genClasses>
+    <genClasses ecoreClass="felix.ecore#//PropertiesType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EAttribute felix.ecore#//PropertiesType/group"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference felix.ecore#//PropertiesType/property"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//PropertiesType/pid"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//PropertiesType/propagation"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//PropertiesType/updated"/>
+    </genClasses>
+    <genClasses ecoreClass="felix.ecore#//PropertyType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//PropertyType/field"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//PropertyType/mandatory"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//PropertyType/method"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//PropertyType/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//PropertyType/type"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//PropertyType/value"/>
+    </genClasses>
+    <genClasses ecoreClass="felix.ecore#//ProvidesType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EAttribute felix.ecore#//ProvidesType/group"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference felix.ecore#//ProvidesType/property"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference felix.ecore#//ProvidesType/controller"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//ProvidesType/postRegistration"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//ProvidesType/postUnregistration"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//ProvidesType/specifications"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//ProvidesType/strategy"/>
+    </genClasses>
+    <genClasses ecoreClass="felix.ecore#//RequiresType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EAttribute felix.ecore#//RequiresType/group"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference felix.ecore#//RequiresType/callback"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//RequiresType/defaultImplementation"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//RequiresType/field"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//RequiresType/from"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//RequiresType/nullable"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//RequiresType/proxy"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//RequiresType/scope"/>
+    </genClasses>
+    <genClasses ecoreClass="felix.ecore#//RootElementType"/>
+    <genClasses ecoreClass="felix.ecore#//ServiceControllerType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//ServiceControllerType/field"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//ServiceControllerType/value"/>
+    </genClasses>
+    <genClasses ecoreClass="felix.ecore#//ServiceDependencyType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//ServiceDependencyType/aggregate"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//ServiceDependencyType/comparator"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//ServiceDependencyType/filter"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//ServiceDependencyType/id"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//ServiceDependencyType/optional"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//ServiceDependencyType/policy"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute felix.ecore#//ServiceDependencyType/specification"/>
+    </genClasses>
+  </genPackages>
+</genmodel:GenModel>

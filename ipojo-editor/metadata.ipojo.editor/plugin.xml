@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="liglab.imag.fr.metadata.ui.editor.MetadataEditor"
+            default="false"
+            icon="icons/component.png"
+            id="metadata.ipojo.editor"
+            name="iPOJO Metadata Editor">
+         <contentTypeBinding
+               contentTypeId="metadata.ipojo.editor.content-type">
+         </contentTypeBinding>
+      </editor>
+   </extension>
+   <extension
+         point="org.eclipse.core.contenttype.contentTypes">
+      <content-type
+            base-type="org.eclipse.core.runtime.xml"
+            file-names="metadata.xml"
+            id="metadata.ipojo.editor.content-type"
+            name="ipojo metadata"
+            priority="normal">
+      </content-type>
+   </extension>
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            adaptable="false"
+            id="metadata.ipojo.editor.objectContribution1"
+            objectClass="org.apache.felix.impl.ComponentTypeImpl">
+         <action
+               class="liglab.imag.fr.metadata.ui.editor.actions.CreateInstanceAction"
+               id="metadata.ipojo.editor.action1"
+               label="New Instance">
+         </action>
+      </objectContribution>
+   </extension>
+
+</plugin>
