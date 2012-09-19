@@ -181,7 +181,7 @@ public class DependencyDialog extends MetadataInputDialog {
 	protected void load() {
 		
 		if (dependency!=null) {
-			if (isFieldRequirement(dependency)) {
+			if (ModelUtil.isFieldDependency(dependency)) {
 				singleButton.setSelection(true);
 				enableMethodsWidgets(false);
 				
@@ -286,7 +286,7 @@ public class DependencyDialog extends MetadataInputDialog {
 		if (multipleButton.getSelection()) {
 
 			if (dependency!=null) {
-				dependency.setId(idText.getText());
+				//dependency.setId(idText.getText());
 								
 				if (!idText.getText().equals(dependency.getId())) {
 					command = CommandFactory.createSetIDDependencyCommand(editingDomain, dependency, idText.getText());
@@ -305,11 +305,23 @@ public class DependencyDialog extends MetadataInputDialog {
 					compoundCommand.append(command);
 				}
 				
-				// Adds callbacks
+				DependencyCallbackType bindCallbackType = ModelUtil.getBindCallback(dependency);
+				if (bindCallbackType!=null) {
+					String bindMethod = bindCallbackType.getMethod();
+					if (!bindMethod.equals(bindText.getText())) {
+						command = CommandFactory.createSetCallbackDependencyCommand(editingDomain, dependency, bindText.getText(), TypeType.BIND);
+						compoundCommand.append(command);
+					}
+				} else {
+					command = CommandFactory.createSetCallbackDependencyCommand(editingDomain, dependency, bindText.getText(), TypeType.BIND);
+					compoundCommand.append(command);
+				}
+								
+				// Adds callbacks				
 				command = CommandFactory.createSetCallbackDependencyCommand(editingDomain, dependency, bindText.getText(), TypeType.BIND);
 				compoundCommand.append(command);
 				command = CommandFactory.createSetCallbackDependencyCommand(editingDomain, dependency, unbindText.getText(), TypeType.UNBIND);
-				compoundCommand.append(command);
+				compoundCommand.append(command);				
 			}
 		}
 		
@@ -344,9 +356,6 @@ public class DependencyDialog extends MetadataInputDialog {
    	return dependency;
    }
    
-	private boolean isFieldRequirement(RequiresType requirement) {
-		return requirement.getCallback().isEmpty();
-	}
 	
 	private void enableMethodsWidgets(boolean enable) {
 		bindText.setEnabled(enable);

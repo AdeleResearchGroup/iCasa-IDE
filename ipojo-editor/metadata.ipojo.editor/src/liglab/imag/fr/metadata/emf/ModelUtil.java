@@ -1,6 +1,7 @@
 package liglab.imag.fr.metadata.emf;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.felix.CallbackType;
@@ -10,6 +11,7 @@ import org.apache.felix.FelixFactory;
 import org.apache.felix.InstancePropertyType;
 import org.apache.felix.InstanceType;
 import org.apache.felix.IpojoType;
+import org.apache.felix.ProvidesType;
 import org.apache.felix.RequiresType;
 import org.apache.felix.TransitionType;
 import org.apache.felix.TypeType;
@@ -20,10 +22,20 @@ import org.eclipse.emf.edit.domain.EditingDomain;
 
 public class ModelUtil {
 
+	/**
+	 * Return a validate callback type
+	 * @param component
+	 * @return
+	 */
 	public static CallbackType getValidateCallback(ComponentType component) {
 		return getCallback(component, TransitionType.VALIDATE);
 	}
 	
+	/**
+	 * Return a unvalidate callback type
+	 * @param component
+	 * @return
+	 */
 	public static CallbackType getInvalidateCallback(ComponentType component) {
 		return getCallback(component, TransitionType.INVALIDATE);
 	}
@@ -60,6 +72,17 @@ public class ModelUtil {
 	 */
 	public static DependencyCallbackType getUnbindCallback(RequiresType dependency) {
 		return getRequirementCallback(dependency, TypeType.UNBIND);
+	}
+	
+	
+	/**
+	 * Determines if the dependency is based on a field
+	 * 
+	 * @param requirement
+	 * @return
+	 */
+	public static boolean isFieldDependency(RequiresType requirement) {
+		return requirement.getCallback().isEmpty();
 	}
 	
 	/**
@@ -156,6 +179,21 @@ public class ModelUtil {
 	 */
 	public static void executeCommand(EditingDomain editingDomain, Command command) {
 		editingDomain.getCommandStack().execute(command);
+	}
+	
+	/**
+	 * Gets the list of implemented interfaces
+	 * @param component
+	 * @return
+	 */
+	public static List<String> getInterfaces(ComponentType component) {		
+		if (!component.getProvides().isEmpty()) {
+			ProvidesType provides = component.getProvides().get(0);
+			String specsStr = provides.getSpecifications();
+			if (specsStr!=null)
+				return Arrays.asList(specsStr.split("\\s*,\\s*"));
+		}		
+		return new ArrayList<String>();
 	}
 	
 }

@@ -3,6 +3,8 @@
  */
 package liglab.imag.fr.metadata.ui.editor.page.component;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import liglab.imag.fr.metadata.emf.CommandFactory;
@@ -10,31 +12,21 @@ import liglab.imag.fr.metadata.emf.ModelUtil;
 import liglab.imag.fr.metadata.ui.editor.MetadataEditor;
 import liglab.imag.fr.metadata.ui.editor.dialog.DependencyDialog;
 import liglab.imag.fr.metadata.ui.editor.dialog.PropertyDialog;
+import liglab.imag.fr.metadata.util.JDTUtil;
 
 import org.apache.felix.CallbackType;
 import org.apache.felix.ComponentType;
 import org.apache.felix.PropertiesType;
 import org.apache.felix.PropertyType;
 import org.apache.felix.RequiresType;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.emf.common.command.Command;
 import org.eclipse.emf.edit.domain.EditingDomain;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragment;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
-import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.ui.IJavaElementSearchConstants;
-import org.eclipse.jdt.ui.JavaUI;
-import org.eclipse.jdt.ui.actions.OpenNewClassWizardAction;
-import org.eclipse.jdt.ui.wizards.NewClassWizardPage;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -54,12 +46,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.IEditorDescriptor;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IFileEditorInput;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.dialogs.SelectionDialog;
 import org.eclipse.ui.forms.IDetailsPage;
 import org.eclipse.ui.forms.IFormPart;
 import org.eclipse.ui.forms.IManagedForm;
@@ -70,9 +56,10 @@ import org.eclipse.ui.forms.widgets.Hyperlink;
 import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.forms.widgets.TableWrapData;
 import org.eclipse.ui.forms.widgets.TableWrapLayout;
-import org.eclipse.ui.part.FileEditorInput;
 
 /**
+ * Component details definition page
+ * 
  * @author Gabriel
  * 
  */
@@ -95,6 +82,8 @@ public class ComponentDetailsPage implements IDetailsPage {
 	private Button providesButton;
 
 	private Viewer componentsViewer;
+
+	private TableViewer interfacesViewer;
 
 	private TableViewer dependenciesViewer;
 
@@ -231,15 +220,17 @@ public class ComponentDetailsPage implements IDetailsPage {
 		textFieldModifyListener = new TextFieldModifyListener();
 		buttonSelectionListener = new ButtonSelectionListener();
 		createGeneralSection(parent);
+		createInterfacesSection(parent);
 		createPropertiesSection(parent);
 		createDependenciesSection(parent);
 		createLifeCycleSection(parent);
+		createImplementationSection(parent);
 
 	}
 
 	/**
-	 * Creates the General section of component description (component name, classname and
-	 * provides)
+	 * Creates the General section of component description (component name,
+	 * classname and provides)
 	 * 
 	 * @param parent
 	 */
@@ -251,7 +242,6 @@ public class ComponentDetailsPage implements IDetailsPage {
 		s1.setDescription("Set the description of the selected component."); //$NON-NLS-1$
 
 		TableWrapData td = new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.FILL_GRAB);
-
 
 		Composite client = toolkit.createComposite(s1);
 		TableWrapLayout tableLayout = new TableWrapLayout();
@@ -271,31 +261,46 @@ public class ComponentDetailsPage implements IDetailsPage {
 		providesButton.setData("providesService");
 		providesButton.addSelectionListener(buttonSelectionListener);
 
+		toolkit.paintBordersFor(s1);
+		s1.setClient(client);
+	}
+
+	private void createImplementationSection(Composite parent) {
+		FormToolkit toolkit = mform.getToolkit();
+
+		Section s1 = toolkit.createSection(parent, Section.DESCRIPTION | Section.TITLE_BAR);
+		s1.marginWidth = 10;
+		s1.setText("Component Type Implementation"); //$NON-NLS-1$
+		s1.setDescription("Set or generate the component type implementation class."); //$NON-NLS-1$
+
+		TableWrapData td = new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.FILL_GRAB);
+
+		Composite client = toolkit.createComposite(s1);
+		TableWrapLayout tableLayout = new TableWrapLayout();
+		tableLayout.numColumns = 3;
+
+		td.grabHorizontal = true;
+		client.setLayout(tableLayout);
+
 		Hyperlink link = toolkit.createHyperlink(client, "Implementation Class", SWT.WRAP);
 		link.addHyperlinkListener(new HyperlinkAdapter() {
 			public void linkActivated(HyperlinkEvent e) {
-				IJavaProject javaProject = getJavaProject();
-				if (!classNameText.getText().equals("")) {
+				IJavaProject javaProject = JDTUtil.getJavaProject();
+				String className = classNameText.getText();
+				if (!className.isEmpty()) {
 					IType selectedClass = null;
 					try {
-						selectedClass = javaProject.findType(classNameText.getText());
+						selectedClass = javaProject.findType(className);
 					} catch (JavaModelException e2) {
 						e2.printStackTrace();
 					}
 					if (selectedClass != null) {
-						openJavaEditor(selectedClass);
+						JDTUtil.openJavaEditor(selectedClass);
 					} else {
-						IType newClass = openCreateJavaClassWizard(classNameText.getText(), javaProject);
-						if (newClass != null) {
-							classNameText.setText(newClass.getFullyQualifiedName());
-						}
+						MessageDialog.openWarning(null, "iCasa Environment", "The class " + className
+						      + " does not exist");
 					}
-				} else {
-					IType newClass = openCreateJavaClassWizard(classNameText.getText(), javaProject);
-					if (newClass != null) {
-						classNameText.setText(newClass.getFullyQualifiedName());
-					}
-				}				
+				}
 			}
 		});
 
@@ -308,6 +313,141 @@ public class ComponentDetailsPage implements IDetailsPage {
 		Button browseButton = toolkit.createButton(client, "Browse", SWT.FLAT);
 		browseButton.setData("browseClass");
 		browseButton.addSelectionListener(buttonSelectionListener);
+
+		toolkit.paintBordersFor(s1);
+		s1.setClient(client);
+	}
+
+	/*
+	 * private void createInterfacesSection(Composite parent) { FormToolkit
+	 * toolkit = mform.getToolkit(); Section s1 = toolkit.createSection(parent,
+	 * Section.DESCRIPTION | Section.TITLE_BAR | Section.TWISTIE |
+	 * Section.EXPANDED); s1.marginWidth = 10;
+	 * s1.setText("Component Interfaces"); //$NON-NLS-1$
+	 * s1.setDescription("Set the interfaces of the selected component.");
+	 * //$NON-NLS-1$
+	 * 
+	 * TableWrapData td = new TableWrapData(TableWrapData.FILL_GRAB,
+	 * TableWrapData.FILL_GRAB); s1.setLayoutData(td);
+	 * 
+	 * Composite client = toolkit.createComposite(s1); TableWrapLayout glayout =
+	 * new TableWrapLayout(); glayout.makeColumnsEqualWidth = true;
+	 * glayout.numColumns = 2;
+	 * 
+	 * td.grabHorizontal = true; client.setLayout(glayout);
+	 * 
+	 * Vector languages = new Vector();
+	 * 
+	 * languages.add(new Language("Java", true)); languages.add(new Language("C",
+	 * false)); languages.add(new Language("C++", true)); languages.add(new
+	 * Language("SmallTalk", true));
+	 * 
+	 * interfacesViewer = new ListViewer(client);
+	 * 
+	 * interfacesViewer.setContentProvider(new IStructuredContentProvider() {
+	 * public Object[] getElements(Object inputElement) { Vector v = (Vector)
+	 * inputElement; return v.toArray(); }
+	 * 
+	 * public void dispose() { System.out.println("Disposing ..."); }
+	 * 
+	 * public void inputChanged(Viewer viewer, Object oldInput, Object newInput)
+	 * { System.out.println("Input changed: old=" + oldInput + ", new=" +
+	 * newInput); } });
+	 * 
+	 * interfacesViewer.setLabelProvider(new LabelProvider() { public Image
+	 * getImage(Object element) { return null; }
+	 * 
+	 * public String getText(Object element) { return ((Language) element).genre;
+	 * } });
+	 * 
+	 * interfacesViewer.setInput(languages);
+	 * 
+	 * td = new TableWrapData(TableWrapData.FILL); Button addButton =
+	 * toolkit.createButton(client, "Add", SWT.PUSH); //$NON-NLS-1$
+	 * addButton.setData("addProperty");
+	 * addButton.addSelectionListener(buttonSelectionListener);
+	 * addButton.setLayoutData(td);
+	 * 
+	 * td = new TableWrapData(TableWrapData.FILL); Button editButton =
+	 * toolkit.createButton(client, "Edit", SWT.PUSH); //$NON-NLS-1$
+	 * editButton.setData("editProperty");
+	 * editButton.addSelectionListener(buttonSelectionListener);
+	 * editButton.setLayoutData(td);
+	 * 
+	 * td = new TableWrapData(TableWrapData.FILL); Button deleteButton =
+	 * toolkit.createButton(client, "Delete", SWT.PUSH); //$NON-NLS-1$
+	 * deleteButton.setData("deleteProperty");
+	 * deleteButton.addSelectionListener(buttonSelectionListener);
+	 * deleteButton.setLayoutData(td);
+	 * 
+	 * toolkit.paintBordersFor(s1); s1.setClient(client);
+	 * 
+	 * }
+	 * 
+	 * public static class Language { public String genre; public boolean
+	 * isObjectOriented;
+	 * 
+	 * public Language() { }
+	 * 
+	 * public Language(String genre, boolean isObjectOriented) { this.genre =
+	 * genre; this.isObjectOriented = isObjectOriented; }
+	 * 
+	 * public String toString() { return "Lang: " + genre + " [" +
+	 * (isObjectOriented ? "Object-oriented" : "Procedural") + "]"; } }
+	 */
+
+	/**
+	 * Creates the Properties section of component description
+	 * 
+	 * @param parent
+	 */
+	private void createInterfacesSection(Composite parent) {
+		FormToolkit toolkit = mform.getToolkit();
+		Section s1 = toolkit.createSection(parent, Section.DESCRIPTION | Section.TITLE_BAR | Section.TWISTIE
+		      | Section.EXPANDED);
+		s1.marginWidth = 10;
+		s1.setText("Component Interfaces"); //$NON-NLS-1$
+		s1.setDescription("Set the interfaces of the selected component."); //$NON-NLS-1$
+
+		TableWrapData td = new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.FILL_GRAB);
+		s1.setLayoutData(td);
+
+		Composite client = toolkit.createComposite(s1);
+		TableWrapLayout glayout = new TableWrapLayout();
+		glayout.makeColumnsEqualWidth = true;
+		glayout.numColumns = 2;
+
+		td.grabHorizontal = true;
+		client.setLayout(glayout);
+
+		td = new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.FILL_GRAB);
+		td.rowspan = 3;
+		Table t = toolkit.createTable(client, SWT.NULL);
+		t.setLayoutData(td);
+
+		td = new TableWrapData(TableWrapData.FILL);
+		Button addButton = toolkit.createButton(client, "Add", SWT.PUSH); //$NON-NLS-1$
+		addButton.setData("addInterface");
+		addButton.addSelectionListener(buttonSelectionListener);
+		addButton.setLayoutData(td);
+
+		/*
+		 * td = new TableWrapData(TableWrapData.FILL); Button editButton =
+		 * toolkit.createButton(client, "Edit", SWT.PUSH); //$NON-NLS-1$
+		 * editButton.setData("editProperty");
+		 * editButton.addSelectionListener(buttonSelectionListener);
+		 * editButton.setLayoutData(td);
+		 */
+
+		td = new TableWrapData(TableWrapData.FILL);
+		Button deleteButton = toolkit.createButton(client, "Delete", SWT.PUSH); //$NON-NLS-1$
+		deleteButton.setData("deleteInterface");
+		deleteButton.addSelectionListener(buttonSelectionListener);
+		deleteButton.setLayoutData(td);
+
+		interfacesViewer = new TableViewer(t);
+		interfacesViewer.setContentProvider(new ArrayContentProvider());
+		interfacesViewer.setLabelProvider(new LabelProvider());
 
 		toolkit.paintBordersFor(s1);
 		s1.setClient(client);
@@ -375,8 +515,8 @@ public class ComponentDetailsPage implements IDetailsPage {
 	 */
 	private void createDependenciesSection(Composite parent) {
 		FormToolkit toolkit = mform.getToolkit();
-		Section section = toolkit.createSection(parent, Section.DESCRIPTION | Section.TITLE_BAR | Section.TWISTIE
-		      | Section.EXPANDED);
+		Section section = toolkit.createSection(parent, Section.DESCRIPTION | Section.TITLE_BAR
+		      | Section.TWISTIE | Section.EXPANDED);
 		section.marginWidth = 10;
 		section.setText("Component Dependencies"); //$NON-NLS-1$
 		section.setDescription("Set the service dependencies of the selected component"); //$NON-NLS-1$
@@ -473,7 +613,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 	}
 
 	/**
-	 * Updates the page widgets using the new component input 
+	 * Updates the page widgets using the new component input
 	 * 
 	 */
 	private void update() {
@@ -484,11 +624,23 @@ public class ComponentDetailsPage implements IDetailsPage {
 			nameText.setText(input.getName());
 
 			classNameText.setText("");
-						
+
 			if (input.getClassname() != null)
 				classNameText.setText(input.getClassname());
 
 			providesButton.setSelection(!input.getProvides().isEmpty());
+
+			/*
+			if (!input.getProvides().isEmpty()) {
+				ProvidesType provides = input.getProvides().get(0);
+				String specsStr = provides.getSpecifications();
+
+				List<String> specs = Arrays.asList(specsStr.split("\\s*,\\s*"));
+				interfacesViewer.setInput(specs);
+			}
+			*/
+			
+			interfacesViewer.setInput(ModelUtil.getInterfaces(input));
 
 			dependenciesViewer.setInput(input.getRequires());
 
@@ -533,142 +685,26 @@ public class ComponentDetailsPage implements IDetailsPage {
 		invalidateText.addModifyListener(textFieldModifyListener);
 	}
 
-	/**
-	 * Gets the java project containing the actual metadata.xml file
-	 * @return
-	 */
-	private IJavaProject getJavaProject() {
-		IFileEditorInput editorInputFile = (IFileEditorInput) PlatformUI.getWorkbench()
-		      .getActiveWorkbenchWindow().getActivePage().getActiveEditor().getEditorInput();
-		IJavaProject javaProject = JavaCore.create(editorInputFile.getFile().getProject());
-		return javaProject;
-	}
 
-	/**
-	 * Opens the java editor with the specified IType
-	 * @param type
-	 */
-	private void openJavaEditor(IType type) {
-		IPath path = type.getPath();
-		IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
-		IEditorInput editorInput = new FileEditorInput(file);
-		IEditorDescriptor desc = PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(file.getName());
-		try {
-			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
-			      .openEditor(editorInput, desc.getId());
-		} catch (PartInitException e1) {
-			e1.printStackTrace();
-		}
-	}
-
-	/**
-	 * Opens the (OpenNewClassWizardAction) JDT wizard  to create a new class into
-	 * the project
-	 * 
-	 * @param qualifiedClassName
-	 *           the qualified class name
-	 * @param javaProject
-	 *           the (java) project
-	 * @return the created Class
-	 */
-	private IType openCreateJavaClassWizard(String qualifiedClassName, IJavaProject javaProject) {
-		OpenNewClassWizardAction wizardAction = new OpenNewClassWizardAction();
-		String className = "";
-		String packageName = "";
-		NewClassWizardPage wizardPage = new NewClassWizardPage();
-		IPackageFragmentRoot packageFragmentRoot = null;
-
-		if (qualifiedClassName != null && qualifiedClassName.length() > 0) {
-			className = getJavaClassName(qualifiedClassName);
-			packageName = getJavaPackageName(qualifiedClassName);
-			wizardPage.setTypeName(className, true);
-
-			try {
-				packageFragmentRoot = javaProject.getAllPackageFragmentRoots()[0];
-				if (packageFragmentRoot != null) {
-					if (!packageName.isEmpty()) {
-						IPackageFragment fragment = createPackageFragment(packageName, javaProject);
-						wizardPage.setPackageFragment(fragment, true);
-					}
-					wizardPage.setPackageFragmentRoot(packageFragmentRoot, true);
-				}
-			} catch (JavaModelException e) {
-				e.printStackTrace();
-			}
-		}
-
-		wizardAction.setConfiguredWizardPage(wizardPage);
-		wizardAction.run();
-		IType newClass = (IType) wizardAction.getCreatedElement();
-		return newClass;
-	}
-
-	/**
-	 * Creates a new package Fragment if it doest'n exist
-	 * 
-	 * @param packageName
-	 * @param javaProject  
-	 * @return
-	 */
-	private IPackageFragment createPackageFragment(String packageName, IJavaProject javaProject) {
-
-		IPackageFragment fragment = null;
-		try {
-			IPackageFragmentRoot packageFragmentRoot = javaProject.getAllPackageFragmentRoots()[0];
-			if (packageFragmentRoot != null) {
-				if (!packageName.isEmpty()) {
-					fragment = packageFragmentRoot.getPackageFragment(packageName);
-					if (fragment != null)
-						return fragment;
-					// Creates the new fragment
-					IFolder folder = javaProject.getProject().getFolder("src");
-					IPackageFragmentRoot srcFolder = javaProject.getPackageFragmentRoot(folder);
-					fragment = srcFolder.createPackageFragment(packageName, true, null);
-				}
-			}
-		} catch (JavaModelException e) {
-			e.printStackTrace();
-		}
-
-		return fragment;
-	}
-
-	/**
-	 * Gets the java name of a class
-	 * @param qualifiedClassName the qualified class name
-	 * @return
-	 */
-	private String getJavaClassName(String qualifiedClassName) {
-		String className = "";
-		if (qualifiedClassName.lastIndexOf('.') > 0) {
-			className = qualifiedClassName.substring(qualifiedClassName.lastIndexOf('.') + 1); // Map$Entry
-		}
-		// The $ can be converted to a .
-		className = className.replace('$', '.');
-		return className;
-	}
-
-	/**
-	 * Gets the package name
-	 * @param qualifiedClassName
-	 * @return
-	 */
-	public String getJavaPackageName(String qualifiedClassName) {
-		int lastDot = qualifiedClassName.lastIndexOf('.');
-		if (lastDot == -1) {
-			return "";
-		}
-		return qualifiedClassName.substring(0, lastDot);
+	private String concatInterface(String list, String newInterface) {
+		if (list.length() > 0)
+			list = list + "," + newInterface;
+		else
+			list = newInterface;
+		return list;
 	}
 
 	/**
 	 * Determines if the dependency is based on a field
+	 * 
 	 * @param requirement
 	 * @return
 	 */
-	private boolean isFieldDependency(RequiresType requirement) {
-		return requirement.getCallback().isEmpty();
-	}
+
+	/*
+	 * private boolean isFieldDependency(RequiresType requirement) { return
+	 * requirement.getCallback().isEmpty(); }
+	 */
 
 	/**
 	 * LabelProvider used for elements of a component(properties and
@@ -688,7 +724,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 		public String getColumnText(Object element, int columnIndex) {
 			if (element instanceof RequiresType) {
 				RequiresType requirement = (RequiresType) element;
-				if (isFieldDependency(requirement)) {
+				if (ModelUtil.isFieldDependency(requirement)) {
 					return requirement.getField();
 				} else { // Method Requirement
 					if (requirement.getId() != null)
@@ -708,7 +744,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 	 * Handles modifications in text fields
 	 * 
 	 * @author Gabriel
-	 *
+	 * 
 	 */
 	class TextFieldModifyListener implements ModifyListener {
 
@@ -758,7 +794,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 					if (dialog.open() == Window.OK) {
 						Command command = CommandFactory.createAddRequirementCommand(editingDomain, input,
 						      dialog.getRequirement());
-						executeCommand(command);						
+						executeCommand(command);
 						refreshDependenciesViewer();
 					}
 				} else if (data.equals("editDependency")) {
@@ -805,6 +841,50 @@ public class ComponentDetailsPage implements IDetailsPage {
 						executeCommand(command);
 						refreshPropertiesViewer();
 					}
+				} else if (data.equals("addInterface")) {
+
+					IType selectedType = JDTUtil.openSearchJDTDialog(IJavaSearchScope.SOURCES
+					      | IJavaSearchScope.APPLICATION_LIBRARIES | IJavaSearchScope.REFERENCED_PROJECTS,
+					      IJavaElementSearchConstants.CONSIDER_INTERFACES, true);
+
+					if (selectedType != null) {
+
+						String specsStr = "";
+						List<String> specsList = (List<String>) interfacesViewer.getInput();
+						for (String spec : specsList)
+							specsStr = concatInterface(specsStr, spec);
+						specsStr = concatInterface(specsStr, selectedType.getFullyQualifiedName());
+
+						Command command = CommandFactory.createAddSpecification(editingDomain, input, specsStr);
+						executeCommand(command);
+
+						List<String> specs = Arrays.asList(specsStr.split("\\s*,\\s*"));
+						interfacesViewer.setInput(specs);
+
+					}
+
+				} else if (data.equals("deleteInterface")) {
+
+					IStructuredSelection selection = (IStructuredSelection) interfacesViewer.getSelection();
+					if (selection.size() > 0) {
+						String interfaze = (String) selection.getFirstElement();
+
+						List<String> specsListRO = (List<String>) interfacesViewer.getInput();
+						ArrayList<String> specsList = new ArrayList<String>(specsListRO);
+						specsList.remove(interfaze);
+
+						String specsStr = "";
+						for (String spec : specsList) {
+							specsStr = concatInterface(specsStr, spec);
+						}
+
+						Command command = CommandFactory.createAddSpecification(editingDomain, input, specsStr);
+						executeCommand(command);
+
+						List<String> specs = Arrays.asList(specsStr.split("\\s*,\\s*"));
+						interfacesViewer.setInput(specs);
+					}
+
 				} else if (data.equals("providesService")) {
 					Command command;
 					if (providesButton.getSelection())
@@ -812,22 +892,13 @@ public class ComponentDetailsPage implements IDetailsPage {
 					else
 						command = CommandFactory.createRemoveProvidesCommand(editingDomain, input);
 					executeCommand(command);
-				} else if (data.equals("browseClass")) {					
-					try {
-						IJavaElement[] javaElements = new IJavaElement[] { getJavaProject() };
-						IJavaSearchScope scope = SearchEngine.createJavaSearchScope(javaElements,
-						      IJavaSearchScope.SOURCES);
-						SelectionDialog dialog = JavaUI.createTypeDialog(null, null, scope,
-						      IJavaElementSearchConstants.CONSIDER_CLASSES, false);
-						dialog.open();
-						Object[] result = dialog.getResult();
-						if (result.length > 0) {
-							IType selectedClass = (IType) result[0];
-							classNameText.setText(selectedClass.getFullyQualifiedName());
-						}
-					} catch (JavaModelException e1) {
-						e1.printStackTrace();
-					}
+				} else if (data.equals("browseClass")) {
+
+					IType selectedType = JDTUtil.openSearchJDTDialog(IJavaSearchScope.SOURCES,
+					      IJavaElementSearchConstants.CONSIDER_CLASSES, false);
+					if (selectedType != null)
+						classNameText.setText(selectedType.getFullyQualifiedName());
+
 				}
 			}
 		}
@@ -835,12 +906,13 @@ public class ComponentDetailsPage implements IDetailsPage {
 
 	/**
 	 * Executes a EMF command
+	 * 
 	 * @param command
 	 */
 	private void executeCommand(Command command) {
 		ModelUtil.executeCommand(editor.getEditingDomain(), command);
 	}
-	
+
 	/**
 	 * Refreshes the dependencies viewer
 	 */

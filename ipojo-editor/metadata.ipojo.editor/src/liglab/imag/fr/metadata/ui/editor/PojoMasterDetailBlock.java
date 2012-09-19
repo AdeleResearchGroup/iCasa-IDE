@@ -222,8 +222,6 @@ public abstract class PojoMasterDetailBlock extends MasterDetailsBlock {
 	/**
 	 * Defines the context menu used in the component list
 	 */
-	protected void addContextMenu() {
-
-	}
+	protected abstract void addContextMenu();
 
 }

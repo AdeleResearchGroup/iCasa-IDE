@@ -193,6 +193,14 @@ public class CommandFactory {
 		return SetCommand.create(editingDomain, component, feature, newName);
 	}
 
+	
+	public static Command createAddSpecification(EditingDomain editingDomain, ComponentType component,
+	      String newInterface) {
+		EStructuralFeature feature = FelixPackage.eINSTANCE.getProvidesType_Specifications();
+		Object owner = component.getProvides().get(0);
+		return SetCommand.create(editingDomain, owner, feature, newInterface);
+	}
+	
 	/**
 	 * Creates a command to add a Property (RequiresType) into a component
 	 * @param editingDomain
@@ -225,7 +233,7 @@ public class CommandFactory {
 		
 		if (!methodName.isEmpty()) {
 			if (callback != null) {
-				EStructuralFeature feature = FelixPackage.eINSTANCE.getCallbackType_Method();
+				EStructuralFeature feature = FelixPackage.eINSTANCE.getDependencyCallbackType_Method();
 				return SetCommand.create(editingDomain, callback, feature, methodName);
 			} else {
 				EStructuralFeature feature = FelixPackage.eINSTANCE.getRequiresType_Callback();
@@ -235,6 +243,9 @@ public class CommandFactory {
 		}		
 		return UnexecutableCommand.INSTANCE;
 	}
+	
+	
+	
 	
 	public static Command createSetComponentClassCommand(EditingDomain editingDomain, ComponentType component,
 	      String className) {

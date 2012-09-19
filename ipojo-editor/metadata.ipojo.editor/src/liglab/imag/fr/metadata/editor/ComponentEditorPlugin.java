@@ -2,6 +2,7 @@ package liglab.imag.fr.metadata.editor;
 
 import java.net.URL;
 
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -74,7 +75,7 @@ public class ComponentEditorPlugin extends AbstractUIPlugin {
 	private void registerImage(ImageRegistry registry, String key, String fileName) {
 		try {
 			IPath path = new Path("icons/" + fileName); //$NON-NLS-1$
-			URL url = find(path);
+			URL url = FileLocator.find(this.getBundle(), path, null);
 			if (url != null) {
 				ImageDescriptor desc = ImageDescriptor.createFromURL(url);
 				registry.put(key, desc);

@@ -5,7 +5,6 @@ import liglab.imag.fr.metadata.emf.InstanceTypeItemProvider;
 
 import org.apache.felix.ComponentType;
 import org.apache.felix.InstanceType;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;

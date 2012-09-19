@@ -13,7 +13,6 @@ import liglab.imag.fr.metadata.ui.editor.providers.InstanceContentProvider;
 import org.apache.felix.ComponentType;
 import org.apache.felix.FelixFactory;
 import org.apache.felix.InstanceType;
-import org.apache.felix.impl.ComponentTypeImpl;
 import org.eclipse.emf.common.command.Command;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
@@ -49,8 +48,7 @@ public class InstanceMasterDetailBlock extends PojoMasterDetailBlock {
 	 */
 	@Override
 	protected void registerPages(DetailsPart detailsPart) {		
-		detailsPart.registerPage(ComponentTypeImpl.class, new InstanceDetailsPage(editor, componentsViewer));
-
+		detailsPart.registerPage(InstanceTypeItemProvider.class, new InstanceDetailsPage(editor, componentsViewer));
 	}
 
 	@Override
@@ -60,12 +58,12 @@ public class InstanceMasterDetailBlock extends PojoMasterDetailBlock {
 
 	@Override
    protected String getPanelMessage() {
-	   return "The list contains instances declaration";
+	   return "The list contains configured components in application";
    }
 	
 	@Override
 	protected String getPanelTitle() {
-	   return "Component Instance List";
+	   return "Application Component List";
 	}
 
 	@Override
@@ -115,7 +113,9 @@ public class InstanceMasterDetailBlock extends PojoMasterDetailBlock {
 	 *
 	 */
 	class CreateInstanceAction extends Action {
-				
+		
+		private int seq = 1;
+		
 		public CreateInstanceAction(String text) {
 	      super(text);
       }
@@ -126,10 +126,13 @@ public class InstanceMasterDetailBlock extends PojoMasterDetailBlock {
 			if (!selection.isEmpty()) {
 				if (selection.getFirstElement() instanceof ComponentType) {	               
 					ComponentType component = (ComponentType) selection.getFirstElement();
-					InstanceType instance = FelixFactory.eINSTANCE.createInstanceType();
-					instance.setComponent(component.getName());
+					InstanceType instance = FelixFactory.eINSTANCE.createInstanceType();					
+					String componentName =  component.getName();
+					instance.setComponent(componentName);
+					instance.setName(componentName + "-" + seq++);
 					Command command = CommandFactory.createAddInstanceCommand(editor.getEditingDomain(), component, instance);
 					ModelUtil.executeCommand(editor.getEditingDomain(), command);
+					componentsViewer.refresh();
             }					
 			}
 		}
@@ -154,6 +157,7 @@ public class InstanceMasterDetailBlock extends PojoMasterDetailBlock {
 					InstanceTypeItemProvider instanceItemProvider = (InstanceTypeItemProvider) selection.getFirstElement();
 					Command command = CommandFactory.createRemoveInstanceCommand(editor.getEditingDomain(), instanceItemProvider.getInstance());
 					ModelUtil.executeCommand(editor.getEditingDomain(), command);
+					componentsViewer.refresh(false);
             }					
 			}
 		}
