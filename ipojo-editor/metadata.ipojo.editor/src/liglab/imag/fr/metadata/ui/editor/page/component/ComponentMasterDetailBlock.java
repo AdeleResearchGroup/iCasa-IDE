@@ -156,6 +156,7 @@ public class ComponentMasterDetailBlock extends PojoMasterDetailBlock {
 
 				ImplementationClassModel classModel = new ImplementationClassModel(componentType);
 				classModel.completeImplementationClass(newClass);
+				
 
 				// Seting immplementation class into the file
 				EditingDomain editingDomain = editor.getEditingDomain();

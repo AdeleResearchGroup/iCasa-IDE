@@ -4,7 +4,6 @@
 package liglab.imag.fr.metadata.ui.editor.providers;
 
 import org.apache.felix.PropertyType;
-import org.apache.felix.RequiresType;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 
 /**

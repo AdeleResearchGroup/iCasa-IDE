@@ -875,7 +875,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 				EditingDomain editingDomain = editor.getEditingDomain();
 
 				if (data.equals("addProperty")) {
-					PropertyDialog dialog = new PropertyDialog(editingDomain, null);
+					PropertyDialog dialog = new PropertyDialog(editingDomain, null, true);
 					if (dialog.open() == Window.OK) {
 						Command command = CommandFactory.createAddPropertyCommand(editingDomain, input,
 						      dialog.getProperty());
@@ -886,7 +886,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 					IStructuredSelection selection = (IStructuredSelection) propertiesViewer.getSelection();
 					if (selection.size() > 0) {
 						PropertyType property = (PropertyType) selection.getFirstElement();
-						PropertyDialog dialog = new PropertyDialog(editingDomain, property);
+						PropertyDialog dialog = new PropertyDialog(editingDomain, property, true);
 						if (dialog.open() == Window.OK) {
 							refreshPropertiesViewer();
 							//propertiesViewer.setInput(input.getProperties().get(0).getProperty().toArray());
@@ -949,7 +949,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 						Object element = selection.getFirstElement();
 						if (element instanceof PropertyType) {
 							PropertyType property = (PropertyType) element;
-							PropertyDialog dialog = new PropertyDialog(editingDomain, property);
+							PropertyDialog dialog = new PropertyDialog(editingDomain, property, false);
 							if (dialog.open() == Window.OK) {
 								specificationsViewer.refresh();
 							}
@@ -1057,7 +1057,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 				if (selection.getFirstElement() instanceof ProvidesType) {
 					ProvidesType provides = (ProvidesType) selection.getFirstElement();
 					EditingDomain editingDomain = editor.getEditingDomain();
-					PropertyDialog dialog = new PropertyDialog(editingDomain, null);
+					PropertyDialog dialog = new PropertyDialog(editingDomain, null, false);
 					if (dialog.open() == Window.OK) {
 						PropertyType prop = dialog.getProperty();
 						Command command = CommandFactory

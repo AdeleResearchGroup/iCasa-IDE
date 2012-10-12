@@ -13,7 +13,9 @@ import org.apache.felix.CallbackType;
 import org.apache.felix.ComponentType;
 import org.apache.felix.PropertiesType;
 import org.apache.felix.PropertyType;
+import org.apache.felix.ProvidesType;
 import org.apache.felix.RequiresType;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 
@@ -25,6 +27,8 @@ public class ImplementationClassModel {
 	private ComponentType componentType;
 	
 	private Map<String, PropertyType> propertiesFields;
+	
+	private Map<String, PropertyType> servicePropertiesFields;
 	
 	private Map<String, RequiresType> dependencyFields;
 	
@@ -41,6 +45,7 @@ public class ImplementationClassModel {
 		calculateDependenciesMethods();
 		calculatePropertiesFields();
 		calculateLifecycleMethods();
+		calculateServicePropertiesFields();
    }
 		
 	private void calculateDependenciesFields() {
@@ -66,6 +71,20 @@ public class ImplementationClassModel {
 				propertiesFields.put(field, property);
 			}
 		}
+	}
+	
+	private void calculateServicePropertiesFields() {
+		servicePropertiesFields = new HashMap<String, PropertyType>();
+
+		List<ProvidesType> specifications = componentType.getProvides();
+		for (ProvidesType specification : specifications) {
+			List<PropertyType> properties = specification.getProperty();
+			for (PropertyType property : properties) {
+				String field = property.getField();
+				if (field!=null)
+					servicePropertiesFields.put(field, property);
+			}
+      }
 	}
 	
 	private void calculateDependenciesMethods() {
@@ -103,6 +122,12 @@ public class ImplementationClassModel {
 			      + " associated to property " + propertyName);
 		}
 
+		for (String propertiesField : servicePropertiesFields.keySet()) {
+			String propertyName = propertiesFields.get(propertiesField).getName();
+			errors.add("Implementation class has to define the field " + propertiesField
+			      + " associated to service property " + propertyName);
+		}
+		
 		for (String dependenciesField : dependencyFields.keySet()) {
 			String dependencyName = dependencyFields.get(dependenciesField).getField();
 			errors.add("Implementation class has to define the field " + dependenciesField
@@ -121,6 +146,7 @@ public class ImplementationClassModel {
 	public void removeField(String field) {
 		propertiesFields.remove(field);
 		dependencyFields.remove(field);
+		servicePropertiesFields.remove(field);
 	}
 	
 	public void removeMethod(String method) {
@@ -232,22 +258,35 @@ public class ImplementationClassModel {
 
 		
 	public void completeImplementationClass(IType implClass) {
+		// Generation of dependencies based on fields
 		for (RequiresType dependency : dependencyFields.values()) {
 	      generateFieldDependecyCode(implClass, dependency);
-      }				
+      }	
+		
+		// Generation of dependencies based on methods
 		Set<RequiresType> dependencies = new HashSet<RequiresType>(dependencyMethods.values());
 		for (RequiresType dependency : dependencies) {
 	      generateBindMethodDependecyCode(implClass, dependency);
 	      generateUnbindMethodDependecyCode(implClass, dependency);
       }		
+		// Generation of component configuration properties
 		for (PropertyType property : propertiesFields.values()) {
 	      generatePropertyCode(implClass, property);
       }
+		// Generation of service properties
+		for (PropertyType property : servicePropertiesFields.values()) {
+	      generatePropertyCode(implClass, property);
+      }
+		
+		// Generation of lifecycle methods
 		for (CallbackType callback : lifecycleMethods.values()) {
 	      generateLifecycleMethodCode(implClass, callback);
       }
+		
 		try {
-	      JDTUtil.formatCompilationUnit(implClass.getCompilationUnit());
+			ICompilationUnit compilationUnit = implClass.getCompilationUnit();
+	      JDTUtil.formatCompilationUnit(compilationUnit);
+			compilationUnit.save(null, true);
       } catch (JavaModelException e) {
 	      e.printStackTrace();
       }

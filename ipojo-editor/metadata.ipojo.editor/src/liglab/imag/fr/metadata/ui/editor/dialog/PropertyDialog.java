@@ -5,25 +5,18 @@ package liglab.imag.fr.metadata.ui.editor.dialog;
 
 import liglab.imag.fr.metadata.emf.CommandFactory;
 import liglab.imag.fr.metadata.emf.ModelUtil;
-import liglab.imag.fr.metadata.util.JDTUtil;
 
 import org.apache.felix.FelixFactory;
 import org.apache.felix.PropertyType;
 import org.eclipse.emf.common.command.Command;
 import org.eclipse.emf.common.command.CompoundCommand;
 import org.eclipse.emf.edit.domain.EditingDomain;
-import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.search.IJavaSearchScope;
-import org.eclipse.jdt.ui.IJavaElementSearchConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -41,15 +34,17 @@ public class PropertyDialog extends MetadataInputDialog {
 	private Text fieldText;
 	private Text valueText;
 	private Combo typeCombo;
+	private boolean mandatoryField;
 
 	private PropertyType m_property;
 
-	public PropertyDialog(EditingDomain editingDomain, PropertyType property) {
+	public PropertyDialog(EditingDomain editingDomain, PropertyType property, boolean mandatoryField) {
 		super(editingDomain);
 		if (property != null)
 			m_property = property;
 		else
 			m_property = FelixFactory.eINSTANCE.createPropertyType();
+		this.mandatoryField = mandatoryField;
 
 	}
 
@@ -153,10 +148,19 @@ public class PropertyDialog extends MetadataInputDialog {
 			setErrorMessage("Please insert the property name");
 			return false;
 		}
-
-		if (fieldText.getText().trim().isEmpty() && typeCombo.getText().trim().isEmpty()) {
-			setErrorMessage("Please insert a property fied or a property type");
-			return false;
+		
+		String field = fieldText.getText().trim();
+		String type = typeCombo.getText().trim();
+		if (mandatoryField) {
+			if (field.isEmpty()) {
+				setErrorMessage("Please insert the property fied");
+				return false;				
+			}
+		} else {
+			if (field.isEmpty() && type.isEmpty()) {
+				setErrorMessage("Please insert the property fied or the property type");
+				return false;
+			}			
 		}
 
 		return true;

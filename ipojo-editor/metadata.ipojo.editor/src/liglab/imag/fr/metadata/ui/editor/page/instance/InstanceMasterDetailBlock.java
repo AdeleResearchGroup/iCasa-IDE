@@ -36,7 +36,8 @@ public class InstanceMasterDetailBlock extends PojoMasterDetailBlock {
 	
 	public InstanceMasterDetailBlock(MetadataEditor editor, FormPage page) {
 		super(editor, page);
-		instanceContentProvider = new InstanceContentProvider(editor);
+		//instanceContentProvider = new InstanceContentProvider(editor);
+		instanceContentProvider = new InstanceContentProvider();
 	}
 
 	/*

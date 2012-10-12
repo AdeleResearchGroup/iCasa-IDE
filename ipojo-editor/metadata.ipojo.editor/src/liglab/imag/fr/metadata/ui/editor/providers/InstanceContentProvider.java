@@ -8,7 +8,6 @@ import java.util.List;
 
 import liglab.imag.fr.metadata.emf.InstanceTypeItemProvider;
 import liglab.imag.fr.metadata.emf.ModelUtil;
-import liglab.imag.fr.metadata.ui.editor.MetadataEditor;
 
 import org.apache.felix.ComponentType;
 import org.apache.felix.InstanceType;
@@ -22,10 +21,10 @@ import org.eclipse.jface.viewers.Viewer;
  */
 public class InstanceContentProvider implements ITreeContentProvider {
 
-	private MetadataEditor editor;
+	//private MetadataEditor editor;
 		
-	public InstanceContentProvider(MetadataEditor editor) {
-	   this.editor = editor;
+	public InstanceContentProvider() {
+	   //this.editor = editor;
    }
 
 	private static Object[] EMPTY_ARRAY = new Object[0];
@@ -96,7 +95,7 @@ public class InstanceContentProvider implements ITreeContentProvider {
 	public boolean hasChildren(Object element) {
 		if (element instanceof ComponentType) {
 	      ComponentType component = (ComponentType) element;
-	      List list = ModelUtil.getInstances(component);
+	      List<InstanceType> list = ModelUtil.getInstances(component);
 	      return (list.size()>0);
       }
 		return false;
