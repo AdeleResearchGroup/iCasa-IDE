@@ -5,6 +5,7 @@ package liglab.imag.fr.metadata.ui.editor.dialog;
 
 import liglab.imag.fr.metadata.emf.CommandFactory;
 import liglab.imag.fr.metadata.emf.ModelUtil;
+import liglab.imag.fr.metadata.util.JDTUtil;
 
 import org.apache.felix.DependencyCallbackType;
 import org.apache.felix.FelixFactory;
@@ -13,10 +14,14 @@ import org.apache.felix.TypeType;
 import org.eclipse.emf.common.command.Command;
 import org.eclipse.emf.common.command.CompoundCommand;
 import org.eclipse.emf.edit.domain.EditingDomain;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.search.IJavaSearchScope;
+import org.eclipse.jdt.ui.IJavaElementSearchConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -41,6 +46,7 @@ public class DependencyDialog extends MetadataInputDialog {
 	private Text filterText;
 	private Text bindText;
 	private Text unbindText;
+	private Text specificationText;
 	
 	private RequiresType dependency;
 	
@@ -52,13 +58,9 @@ public class DependencyDialog extends MetadataInputDialog {
 	
 	@Override
 	protected Control createDialogArea(Composite parent) {
-
-
 		
 		GridLayout parentLayout = new GridLayout();
 		parentLayout.numColumns = 1;
-		
-		// layout.horizontalAlignment = GridData.FILL;
 		parent.setLayout(parentLayout);
 
 		GridData cardinalityLayoutData = new GridData();
@@ -71,8 +73,6 @@ public class DependencyDialog extends MetadataInputDialog {
 		cardinalityComposite.setLayout(cardinalityLayout);
 		cardinalityComposite.setLayoutData(cardinalityLayoutData);
 		
-
-
 
 		singleButton = new Button(cardinalityComposite, SWT.RADIO);
 		singleButton.setText("Scalar (0..1)");
@@ -105,16 +105,16 @@ public class DependencyDialog extends MetadataInputDialog {
 		GridData dataLayoutData = new GridData();
 		dataLayoutData.horizontalAlignment = SWT.FILL;
 		
-		Group otherComposite = new Group(parent, SWT.NONE);
+		Group generalComposite = new Group(parent, SWT.NONE);
 		GridLayout dataLayout = new GridLayout();
 		dataLayout.numColumns = 2;
-		otherComposite.setLayout(dataLayout);
-		otherComposite.setLayoutData(dataLayoutData);
+		generalComposite.setLayout(dataLayout);
+		generalComposite.setLayoutData(dataLayoutData);
 		
 		
 		
 		
-		Label idLabel = new Label(otherComposite, SWT.NONE);
+		Label idLabel = new Label(generalComposite, SWT.NONE);
 		idLabel.setText("Id (Field Name)");
 
 		
@@ -125,39 +125,76 @@ public class DependencyDialog extends MetadataInputDialog {
 		gridData.horizontalAlignment = GridData.FILL;
 		
 		
-		idText = new Text(otherComposite, SWT.BORDER);
+		idText = new Text(generalComposite, SWT.BORDER);
 		idText.setLayoutData(gridData);
 
 		
-		Label filterLabel = new Label(otherComposite, SWT.NONE);
+		Label filterLabel = new Label(generalComposite, SWT.NONE);
 		filterLabel.setText("Filter");
 				
 		
 		gridData = new GridData();
 		gridData.grabExcessHorizontalSpace = true;
 		gridData.horizontalAlignment = GridData.FILL;
-		filterText = new Text(otherComposite, SWT.BORDER);
+		filterText = new Text(generalComposite, SWT.BORDER);
 		filterText.setLayoutData(gridData);
 		
-		Label label3 = new Label(otherComposite, SWT.NONE);
+		Label label3 = new Label(generalComposite, SWT.NONE);
 		label3.setText("Bind Method");
 
 		gridData = new GridData();
 		gridData.grabExcessHorizontalSpace = true;
 		gridData.horizontalAlignment = GridData.FILL;
-		bindText = new Text(otherComposite, SWT.BORDER);
+		bindText = new Text(generalComposite, SWT.BORDER);
 		bindText.setLayoutData(gridData);
 
-		Label label4 = new Label(otherComposite, SWT.NONE);
+		Label label4 = new Label(generalComposite, SWT.NONE);
 		label4.setText("Unbind Method");
 
 		gridData = new GridData();
 		gridData.grabExcessHorizontalSpace = true;
 		gridData.horizontalAlignment = GridData.FILL;
 		
-		unbindText = new Text(otherComposite, SWT.BORDER);
+		unbindText = new Text(generalComposite, SWT.BORDER);
 		unbindText.setLayoutData(gridData);
-						
+		
+		
+		// Specification section
+		dataLayoutData = new GridData();
+		dataLayoutData.horizontalAlignment = SWT.FILL;
+				
+		Group specComposite = new Group(parent, SWT.NONE);
+		dataLayout = new GridLayout();
+		dataLayout.numColumns = 4;
+		specComposite.setLayout(dataLayout);
+		specComposite.setLayoutData(dataLayoutData);
+
+		Label specLabel = new Label(specComposite, SWT.NONE);
+		specLabel.setText("Dependency Type");
+
+		gridData = new GridData();
+		gridData.grabExcessHorizontalSpace = true;
+		gridData.horizontalAlignment = GridData.FILL;
+		
+		specificationText = new Text(specComposite, SWT.BORDER);
+		specificationText.setLayoutData(gridData);
+		
+		Button searchButton = new Button(specComposite, SWT.FLAT);
+		searchButton.setText("Search");
+		
+		searchButton.addSelectionListener(new SelectionAdapter()  {			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				IType selectedType = JDTUtil.openSearchJDTDialog(IJavaSearchScope.SOURCES | IJavaSearchScope.SYSTEM_LIBRARIES
+				      | IJavaSearchScope.APPLICATION_LIBRARIES | IJavaSearchScope.REFERENCED_PROJECTS ,
+				      IJavaElementSearchConstants.CONSIDER_INTERFACES, true);			
+				if (selectedType!=null)
+					specificationText.setText(selectedType.getFullyQualifiedName());
+			}			
+		});
+
+		Button clearButton = new Button(specComposite, SWT.FLAT);
+		clearButton.setText("Clear");
 		
 		load();
 		
@@ -201,8 +238,14 @@ public class DependencyDialog extends MetadataInputDialog {
 				if (callback!=null)
 					unbindText.setText(callback.getMethod());		
 			}
+			// Sets the filter field
 			if (dependency.getFilter() != null)
 				filterText.setText(dependency.getFilter());
+			
+			// Sets the specification field
+			if (dependency.getSpecification() != null)
+				specificationText.setText(dependency.getSpecification());
+			
 			optionalButton.setSelection(dependency.isOptional());
 			
 		} else {
@@ -300,22 +343,23 @@ public class DependencyDialog extends MetadataInputDialog {
 				
 				// Set the field to null
 				if (dependency.getField()!=null) {
-					command = CommandFactory.createSetFieldDependencyCommand(editingDomain, dependency,
-					     null);
+					command = CommandFactory.createSetFieldDependencyCommand(editingDomain, dependency, null);
 					compoundCommand.append(command);
 				}
 				
+				/*
 				DependencyCallbackType bindCallbackType = ModelUtil.getBindCallback(dependency);
 				if (bindCallbackType!=null) {
-					String bindMethod = bindCallbackType.getMethod();
-					if (!bindMethod.equals(bindText.getText())) {
-						command = CommandFactory.createSetCallbackDependencyCommand(editingDomain, dependency, bindText.getText(), TypeType.BIND);
+					String bindMethodStr = bindText.getText().trim();
+					if (!bindMethodStr.equals(bindCallbackType.getMethod())) {
+						command = CommandFactory.createSetCallbackDependencyCommand(editingDomain, dependency, bindMethodStr, TypeType.BIND);
 						compoundCommand.append(command);
 					}
 				} else {
 					command = CommandFactory.createSetCallbackDependencyCommand(editingDomain, dependency, bindText.getText(), TypeType.BIND);
 					compoundCommand.append(command);
 				}
+				*/
 								
 				// Adds callbacks				
 				command = CommandFactory.createSetCallbackDependencyCommand(editingDomain, dependency, bindText.getText(), TypeType.BIND);
@@ -325,17 +369,27 @@ public class DependencyDialog extends MetadataInputDialog {
 			}
 		}
 		
+		String filterStr = filterText.getText().trim();
 		// Filter has changed
-		if (!filterText.getText().equals(dependency.getFilter())) {
-			if (!filterText.getText().isEmpty()) {
-				command = CommandFactory.createSetFilterDependencyCommand(editingDomain, dependency,
-				      filterText.getText());
-				compoundCommand.append(command);
-			} else {
+		if (!filterStr.equals(dependency.getFilter())) {
+			if (!filterStr.isEmpty())
+				command = CommandFactory.createSetFilterDependencyCommand(editingDomain, dependency, filterStr);
+			else 
 				command = CommandFactory.createSetFilterDependencyCommand(editingDomain, dependency, null);
-				compoundCommand.append(command);
-			}
+			compoundCommand.append(command);			
 		}
+		
+		
+		String specStr = specificationText.getText().trim();
+		// Specification has changed
+		if (!specStr.equals(dependency.getSpecification())) { 
+			if (!specStr.isEmpty()) 
+				command = CommandFactory.createSetSpecificationDependencyCommand(editingDomain, dependency, specStr);
+			 else 
+				command = CommandFactory.createSetSpecificationDependencyCommand(editingDomain, dependency, specStr);
+			compoundCommand.append(command);
+		}
+		
 
 		
 		if (optionalButton.getSelection()) {
@@ -345,6 +399,8 @@ public class DependencyDialog extends MetadataInputDialog {
 			command = CommandFactory.createSetOptionalDependencyCommand(editingDomain, dependency, null);
 			compoundCommand.append(command);						
 		}
+		
+		
 		
 		ModelUtil.executeCommand(editingDomain, compoundCommand);		
 	}

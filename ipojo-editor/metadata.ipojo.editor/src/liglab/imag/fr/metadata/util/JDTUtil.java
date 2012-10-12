@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -12,15 +11,19 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.ToolFactory;
+import org.eclipse.jdt.core.formatter.CodeFormatter;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.ui.IJavaElementSearchConstants;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jdt.ui.actions.OpenNewClassWizardAction;
 import org.eclipse.jdt.ui.wizards.NewClassWizardPage;
+import org.eclipse.text.edits.TextEdit;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
@@ -36,7 +39,7 @@ public class JDTUtil {
 	 * 
 	 * @return
 	 */
-	public static IJavaProject getJavaProject() {
+	public static IJavaProject getCurrentJavaProject() {
 		IFileEditorInput editorInputFile = (IFileEditorInput) PlatformUI.getWorkbench()
 		      .getActiveWorkbenchWindow().getActivePage().getActiveEditor().getEditorInput();
 		IJavaProject javaProject = JavaCore.create(editorInputFile.getFile().getProject());
@@ -78,7 +81,7 @@ public class JDTUtil {
 	 */
 	public static IType openSearchJDTDialog(int includeMask, int style, boolean multipleSelection) {
 		try {
-			IJavaElement[] javaElements = new IJavaElement[] { getJavaProject() };
+			IJavaElement[] javaElements = new IJavaElement[] { getCurrentJavaProject() };
 			IJavaSearchScope scope = SearchEngine.createJavaSearchScope(javaElements, includeMask);
 			SelectionDialog dialog = JavaUI.createTypeDialog(null, null, scope, style, multipleSelection);
 			// dialog.setTitle("Find type to use");
@@ -202,6 +205,20 @@ public class JDTUtil {
 	      }
       }
 		return null;
+	}
+	
+	/**
+	 * Formats a JDT compilation Unit
+	 * @param compilationUnit the compilation unit
+	 * @throws JavaModelException
+	 */
+	public static void formatCompilationUnit(ICompilationUnit compilationUnit) throws JavaModelException {
+		CodeFormatter formatter = ToolFactory.createCodeFormatter(null);
+		ISourceRange range = compilationUnit.getSourceRange();
+		TextEdit edit = formatter.format(CodeFormatter.K_COMPILATION_UNIT, compilationUnit.getSource(),
+		      range.getOffset(), range.getLength(), 0, null);
+		compilationUnit.applyTextEdit(edit, null);
+		compilationUnit.save(null, false);
 	}
 	
 	/**

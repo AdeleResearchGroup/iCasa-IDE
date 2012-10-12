@@ -58,12 +58,12 @@ public class InstanceMasterDetailBlock extends PojoMasterDetailBlock {
 
 	@Override
    protected String getPanelMessage() {
-	   return "The list contains configured components in application";
+	   return "The list contains configured components in bundle";
    }
 	
 	@Override
 	protected String getPanelTitle() {
-	   return "Application Component List";
+	   return "Bundle Component List";
 	}
 
 	@Override

@@ -85,7 +85,7 @@ public abstract class MetadataInputDialog extends TitleAreaDialog {
 	
 	@Override
 	protected boolean isResizable() {
-		return false;
+		return true;
 	}
 
 	/**

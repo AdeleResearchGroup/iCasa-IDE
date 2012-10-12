@@ -19,7 +19,7 @@ public class InstanceMasterPage extends FormPage {
 	protected void createFormContent(final IManagedForm managedForm) {
 		final ScrolledForm form = managedForm.getForm();
 		//FormToolkit toolkit = managedForm.getToolkit();
-		form.setText("Application Definition"); //$NON-NLS-1$
+		form.setText("Component Configuration"); //$NON-NLS-1$
 //		form.setBackgroundImage(FormArticlePlugin.getDefault().getImage(
 //				FormArticlePlugin.IMG_FORM_BG));
 		block.createContent(managedForm);

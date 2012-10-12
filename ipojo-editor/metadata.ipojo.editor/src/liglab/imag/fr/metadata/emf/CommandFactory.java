@@ -35,6 +35,21 @@ import org.eclipse.emf.edit.domain.EditingDomain;
  */
 public class CommandFactory {
 
+	// ----- Instances related commands ------ //
+	
+	/**
+	 * Creates a command to add an Instance (InstanceType) into the model
+	 * @param editingDomain
+	 * @param component
+	 * @param instance
+	 * @return
+	 */
+	public static Command createAddInstanceCommand(EditingDomain editingDomain, ComponentType component, InstanceType instance) {		
+		Object owner = ((EObject)component).eContainer();
+		EStructuralFeature feature = FelixPackage.eINSTANCE.getIpojoType_Instance();
+		return AddCommand.create(editingDomain, owner, feature, instance);
+	}
+	
 	/**
 	 * Creates a set command to change the name of a instance (InstanceType)
 	 * @param editingDomain
@@ -61,7 +76,7 @@ public class CommandFactory {
 		EStructuralFeature feature = FelixPackage.eINSTANCE.getInstanceType_Property();
 		return AddCommand.create(editingDomain, instance, feature, property);
 	}
-	
+		
 	/**
 	 * Creates a remove command for a Property (InstancePropertyType) from a instance (InstanceType)
 	 * @param editingDomain
@@ -76,6 +91,7 @@ public class CommandFactory {
 		return RemoveCommand.create(editingDomain, owner, feature, Collections.singleton(property));
 	}
 	
+	
 	/**
 	 * Creates a set command to change the value of a property
 	 * @param editingDomain
@@ -89,18 +105,6 @@ public class CommandFactory {
 		return SetCommand.create(editingDomain, property, feature, newValue);
 	}
 	
-	/**
-	 * Creates a command to add an Instance (InstanceType) into the model
-	 * @param editingDomain
-	 * @param component
-	 * @param instance
-	 * @return
-	 */
-	public static Command createAddInstanceCommand(EditingDomain editingDomain, ComponentType component, InstanceType instance) {		
-		Object owner = ((EObject)component).eContainer();
-		EStructuralFeature feature = FelixPackage.eINSTANCE.getIpojoType_Instance();
-		return AddCommand.create(editingDomain, owner, feature, instance);
-	}
 	
 	/**
 	 * 
@@ -114,6 +118,9 @@ public class CommandFactory {
 		return RemoveCommand.create(editingDomain, owner, feature, Collections.singleton(instance));
 	}
 
+	
+	
+	// ----- Properties related commands ------ //
 	
 	/**
 	 * Creates a command to add a Property (PropertyType) into a component
@@ -136,21 +143,6 @@ public class CommandFactory {
 		EStructuralFeature feature = FelixPackage.eINSTANCE.getPropertiesType_Property();
 		return AddCommand.create(editingDomain, owner, feature, property);
 	}
-
-	/**
-	 * Creates a command to add a Property (RequiresType) into a component
-	 * @param editingDomain
-	 * @param component
-	 * @param requirement
-	 * @return
-	 */
-	public static Command createAddRequirementCommand(EditingDomain editingDomain, ComponentType component,
-	      RequiresType requirement) {
-		EStructuralFeature feature = FelixPackage.eINSTANCE.getComponentType_Requires();
-		return AddCommand.create(editingDomain, component, feature, requirement);
-	}
-
-	
 	
 	/**
 	 * Creates a remove command for a Property (PropertyType) from a component (ComponentType)
@@ -164,6 +156,45 @@ public class CommandFactory {
 		EObject owner = ((EObject) property).eContainer();
 		EStructuralFeature feature = ((EObject) property).eContainingFeature();
 		return RemoveCommand.create(editingDomain, owner, feature, Collections.singleton(property));
+	}
+	
+	public static Command createSetNamePropertyCommand(EditingDomain editingDomain,
+			PropertyType property, String name) {
+		EStructuralFeature feature = FelixPackage.eINSTANCE.getPropertyType_Name();
+		return SetCommand.create(editingDomain, property, feature, name);
+	}
+	
+	public static Command createSetFieldPropertyCommand(EditingDomain editingDomain,
+			PropertyType property, String fieldName) {
+		EStructuralFeature feature = FelixPackage.eINSTANCE.getPropertyType_Field();
+		return SetCommand.create(editingDomain, property, feature, fieldName);
+	}
+	
+	public static Command createSetValuePropertyCommand(EditingDomain editingDomain,
+			PropertyType property, String value) {
+		EStructuralFeature feature = FelixPackage.eINSTANCE.getPropertyType_Value();
+		return SetCommand.create(editingDomain, property, feature, value);
+	}
+	
+	public static Command createSetTypePropertyCommand(EditingDomain editingDomain,
+			PropertyType property, String type) {
+		EStructuralFeature feature = FelixPackage.eINSTANCE.getPropertyType_Type();
+		return SetCommand.create(editingDomain, property, feature, type);
+	}
+	
+	// ---- Dependencies related commands ----- //
+
+	/**
+	 * Creates a command to add a Property (RequiresType) into a component
+	 * @param editingDomain
+	 * @param component
+	 * @param requirement
+	 * @return
+	 */
+	public static Command createAddRequirementCommand(EditingDomain editingDomain, ComponentType component,
+	      RequiresType requirement) {
+		EStructuralFeature feature = FelixPackage.eINSTANCE.getComponentType_Requires();
+		return AddCommand.create(editingDomain, component, feature, requirement);
 	}
 
 	/**
@@ -180,6 +211,23 @@ public class CommandFactory {
 		return RemoveCommand.create(editingDomain, owner, feature, Collections.singleton(requirement));
 	}
 
+	
+	// ------ Component related commands ------ //
+	
+	
+	public static Command createAddComponentTypeCommand(EditingDomain editingDomain, IpojoType ipojoType) {
+		ComponentType componentType = ModelUtil.createComponentType("New Component");
+		EStructuralFeature feature = FelixPackage.eINSTANCE.getIpojoType_Component();
+		return AddCommand.create(editingDomain, ipojoType, feature, componentType);
+	}
+
+	public static Command createRemoveComponentTypeCommand(EditingDomain editingDomain,
+	      ComponentType componentType) {
+		EObject owner = ((EObject) componentType).eContainer();
+		EStructuralFeature feature = FelixPackage.eINSTANCE.getIpojoType_Component();
+		return RemoveCommand.create(editingDomain, owner, feature, componentType);
+	}
+	
 	/**
 	 * Creates a set command to change the name of a component (ComponentType)
 	 * @param editingDomain
@@ -193,6 +241,14 @@ public class CommandFactory {
 		return SetCommand.create(editingDomain, component, feature, newName);
 	}
 
+	public static Command createSetComponentClassCommand(EditingDomain editingDomain, ComponentType component,
+	      String className) {
+		EStructuralFeature feature = FelixPackage.eINSTANCE.getComponentType_Classname();
+		return SetCommand.create(editingDomain, component, feature, className);
+	}
+	
+	
+	// ------  Specification related commands ----- //
 	
 	public static Command createAddSpecification(EditingDomain editingDomain, ComponentType component,
 	      String newInterface) {
@@ -201,24 +257,38 @@ public class CommandFactory {
 		return SetCommand.create(editingDomain, owner, feature, newInterface);
 	}
 	
-	/**
-	 * Creates a command to add a Property (RequiresType) into a component
-	 * @param editingDomain
-	 * @param component
-	 * @param requirement
-	 * @return
-	 */
-	public static Command createAddProvidesCommand(EditingDomain editingDomain, ComponentType component) {
+	public static Command createAddProvidesCommand(EditingDomain editingDomain, ComponentType component, String specification) {
 		EStructuralFeature feature = FelixPackage.eINSTANCE.getComponentType_Provides();
 		ProvidesType providesType = FelixFactory.eINSTANCE.createProvidesType();
+		providesType.setSpecifications(specification);
 		return AddCommand.create(editingDomain, component, feature, providesType);
 	}
-
 	
-	public static Command createRemoveProvidesCommand(EditingDomain editingDomain, ComponentType component) {
-		EStructuralFeature feature = FelixPackage.eINSTANCE.getComponentType_Provides();
-		return RemoveCommand.create(editingDomain, component, feature, component.getProvides());
+	public static Command createSetInterfacesProvidesCommand(EditingDomain editingDomain, ProvidesType provides, String interfaces) {
+		EStructuralFeature feature = FelixPackage.eINSTANCE.getProvidesType_Specifications();
+		return SetCommand.create(editingDomain, provides, feature, interfaces);
 	}
+		
+	public static Command createRemoveProvidesCommand(EditingDomain editingDomain, ProvidesType provides) {
+		EObject owner = ((EObject) provides).eContainer();
+		EStructuralFeature feature = ((EObject) provides).eContainingFeature();
+		return RemoveCommand.create(editingDomain, owner, feature, Collections.singleton(provides));
+	}
+	
+	public static Command createAddSpecPropertyCommand(EditingDomain editingDomain, ProvidesType provides,
+	      PropertyType property) {
+		EStructuralFeature feature = FelixPackage.eINSTANCE.getProvidesType_Property();
+		return AddCommand.create(editingDomain, provides, feature, property);
+	}
+	
+	public static Command createRemoveSpecPropertyCommand(EditingDomain editingDomain, PropertyType property) {
+		EObject owner = ((EObject) property).eContainer();
+		EStructuralFeature feature = ((EObject) property).eContainingFeature();
+		return RemoveCommand.create(editingDomain, owner, feature, Collections.singleton(property));
+	}
+	
+	
+	// ------  Callbacks related commands ----- //
 	
 	public static Command createRemoveCallbackDependencyCommand(EditingDomain editingDomain, RequiresType dependency,
 			DependencyCallbackType callback) {
@@ -245,13 +315,6 @@ public class CommandFactory {
 	}
 	
 	
-	
-	
-	public static Command createSetComponentClassCommand(EditingDomain editingDomain, ComponentType component,
-	      String className) {
-		EStructuralFeature feature = FelixPackage.eINSTANCE.getComponentType_Classname();
-		return SetCommand.create(editingDomain, component, feature, className);
-	}
 
 	public static Command createSetValidateTransitionCommand(EditingDomain editingDomain,
 	      ComponentType component, String methodName) {
@@ -297,6 +360,19 @@ public class CommandFactory {
 		EStructuralFeature feature = FelixPackage.eINSTANCE.getServiceDependencyType_Filter();
 		return SetCommand.create(editingDomain, requirement, feature, filter);
 	}
+	
+	/**
+	 * Creates a command to set the specification field in a dependency 
+	 * @param editingDomain
+	 * @param requirement
+	 * @param specification
+	 * @return
+	 */
+	public static Command createSetSpecificationDependencyCommand(EditingDomain editingDomain,
+	      RequiresType requirement, String specification) {
+		EStructuralFeature feature = FelixPackage.eINSTANCE.getServiceDependencyType_Specification();
+		return SetCommand.create(editingDomain, requirement, feature, specification);
+	}
 
 	/**
 	 * It creates, modifies or removes an callback method definition for a component
@@ -328,16 +404,5 @@ public class CommandFactory {
 		}
 	}
 
-	public static Command createAddComponentTypeCommand(EditingDomain editingDomain, IpojoType ipojoType) {
-		ComponentType componentType = ModelUtil.createComponentType("New Component");
-		EStructuralFeature feature = FelixPackage.eINSTANCE.getIpojoType_Component();
-		return AddCommand.create(editingDomain, ipojoType, feature, componentType);
-	}
 
-	public static Command createRemoveComponentTypeCommand(EditingDomain editingDomain,
-	      ComponentType componentType) {
-		EObject owner = ((EObject) componentType).eContainer();
-		EStructuralFeature feature = FelixPackage.eINSTANCE.getIpojoType_Component();
-		return RemoveCommand.create(editingDomain, owner, feature, componentType);
-	}
 }

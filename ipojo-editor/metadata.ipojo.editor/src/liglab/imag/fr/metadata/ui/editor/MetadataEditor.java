@@ -174,12 +174,12 @@ public class MetadataEditor extends FormEditor {
 			// addPage(new MetadataEditorGUIPage(this, "first", "iPOJO Editor"));
 			// addPage(new SecondPage(this));
 			addPage(new ComponentMasterPage(this, "master-details-component", "Component Types Definition"));
-			addPage(new InstanceMasterPage(this, "master-details-instance", "Component Configuration"));
+			addPage(new InstanceMasterPage(this, "master-details-instance", "Components Configuration"));
 			//addPage(new InstanceMasterPage(this, "master-details-instance", "Instance Defintion"), getEditorInput());
 			// XML Editor is created
 			xmlEditor = new StructuredTextEditor();
 			int index = addPage(xmlEditor, getEditorInput());
-			setPageText(index, "metadata.xml");
+			setPageText(index, "XML (Read Only)");
 
 		} catch (PartInitException e) {
 			e.printStackTrace();

@@ -12,12 +12,17 @@ import liglab.imag.fr.metadata.emf.ModelUtil;
 import liglab.imag.fr.metadata.ui.editor.MetadataEditor;
 import liglab.imag.fr.metadata.ui.editor.dialog.DependencyDialog;
 import liglab.imag.fr.metadata.ui.editor.dialog.PropertyDialog;
+import liglab.imag.fr.metadata.ui.editor.providers.DependencyLabelProvider;
+import liglab.imag.fr.metadata.ui.editor.providers.PropertyLabelProvider;
+import liglab.imag.fr.metadata.ui.editor.providers.SpecificationContentProvider;
+import liglab.imag.fr.metadata.ui.editor.providers.SpecificationLabelProvider;
 import liglab.imag.fr.metadata.util.JDTUtil;
 
 import org.apache.felix.CallbackType;
 import org.apache.felix.ComponentType;
 import org.apache.felix.PropertiesType;
 import org.apache.felix.PropertyType;
+import org.apache.felix.ProvidesType;
 import org.apache.felix.RequiresType;
 import org.eclipse.emf.common.command.Command;
 import org.eclipse.emf.edit.domain.EditingDomain;
@@ -26,13 +31,17 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.ui.IJavaElementSearchConstants;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.ITableLabelProvider;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
@@ -40,12 +49,12 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.forms.IDetailsPage;
 import org.eclipse.ui.forms.IFormPart;
 import org.eclipse.ui.forms.IManagedForm;
@@ -79,15 +88,17 @@ public class ComponentDetailsPage implements IDetailsPage {
 
 	private Text validateText;
 
-	private Button providesButton;
+	// private Button providesButton;
 
 	private Viewer componentsViewer;
 
-	private TableViewer interfacesViewer;
+	// private TableViewer interfacesViewer;
 
 	private TableViewer dependenciesViewer;
 
 	private TableViewer propertiesViewer;
+
+	private TreeViewer specificationsViewer;
 
 	private TextFieldModifyListener textFieldModifyListener;
 
@@ -168,7 +179,6 @@ public class ComponentDetailsPage implements IDetailsPage {
 	 */
 	@Override
 	public boolean isStale() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -220,7 +230,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 		textFieldModifyListener = new TextFieldModifyListener();
 		buttonSelectionListener = new ButtonSelectionListener();
 		createGeneralSection(parent);
-		createInterfacesSection(parent);
+		createSpecificationsSection(parent);
 		createPropertiesSection(parent);
 		createDependenciesSection(parent);
 		createLifeCycleSection(parent);
@@ -257,10 +267,6 @@ public class ComponentDetailsPage implements IDetailsPage {
 		nameText.addModifyListener(textFieldModifyListener);
 		nameText.setLayoutData(td);
 
-		providesButton = toolkit.createButton(client, "OSGi Service Provision", SWT.CHECK);
-		providesButton.setData("providesService");
-		providesButton.addSelectionListener(buttonSelectionListener);
-
 		toolkit.paintBordersFor(s1);
 		s1.setClient(client);
 	}
@@ -277,7 +283,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 
 		Composite client = toolkit.createComposite(s1);
 		TableWrapLayout tableLayout = new TableWrapLayout();
-		tableLayout.numColumns = 3;
+		tableLayout.numColumns = 4;
 
 		td.grabHorizontal = true;
 		client.setLayout(tableLayout);
@@ -285,7 +291,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 		Hyperlink link = toolkit.createHyperlink(client, "Implementation Class", SWT.WRAP);
 		link.addHyperlinkListener(new HyperlinkAdapter() {
 			public void linkActivated(HyperlinkEvent e) {
-				IJavaProject javaProject = JDTUtil.getJavaProject();
+				IJavaProject javaProject = JDTUtil.getCurrentJavaProject();
 				String className = classNameText.getText();
 				if (!className.isEmpty()) {
 					IType selectedClass = null;
@@ -310,9 +316,15 @@ public class ComponentDetailsPage implements IDetailsPage {
 		td = new TableWrapData(TableWrapData.FILL_GRAB);
 		classNameText.setLayoutData(td);
 
+		ImplementationSelectionListener listener = new ImplementationSelectionListener();
+
 		Button browseButton = toolkit.createButton(client, "Browse", SWT.FLAT);
 		browseButton.setData("browseClass");
-		browseButton.addSelectionListener(buttonSelectionListener);
+		browseButton.addSelectionListener(listener);
+
+		Button clearButton = toolkit.createButton(client, "Clear", SWT.FLAT);
+		clearButton.setData("clearClass");
+		clearButton.addSelectionListener(listener);
 
 		toolkit.paintBordersFor(s1);
 		s1.setClient(client);
@@ -397,16 +409,16 @@ public class ComponentDetailsPage implements IDetailsPage {
 	 */
 
 	/**
-	 * Creates the Properties section of component description
+	 * Creates the Specification section of component description
 	 * 
 	 * @param parent
 	 */
-	private void createInterfacesSection(Composite parent) {
+	private void createSpecificationsSection(Composite parent) {
 		FormToolkit toolkit = mform.getToolkit();
 		Section s1 = toolkit.createSection(parent, Section.DESCRIPTION | Section.TITLE_BAR | Section.TWISTIE
 		      | Section.EXPANDED);
 		s1.marginWidth = 10;
-		s1.setText("Component Interfaces"); //$NON-NLS-1$
+		s1.setText("Service Specification"); //$NON-NLS-1$
 		s1.setDescription("Set the interfaces of the selected component."); //$NON-NLS-1$
 
 		TableWrapData td = new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.FILL_GRAB);
@@ -414,7 +426,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 
 		Composite client = toolkit.createComposite(s1);
 		TableWrapLayout glayout = new TableWrapLayout();
-		glayout.makeColumnsEqualWidth = true;
+		glayout.makeColumnsEqualWidth = false;
 		glayout.numColumns = 2;
 
 		td.grabHorizontal = true;
@@ -422,35 +434,66 @@ public class ComponentDetailsPage implements IDetailsPage {
 
 		td = new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.FILL_GRAB);
 		td.rowspan = 3;
-		Table t = toolkit.createTable(client, SWT.NULL);
-		t.setLayoutData(td);
+		Tree tree = toolkit.createTree(client, SWT.V_SCROLL);
+		tree.setLayoutData(td);
+
+		SpecificationSelectionListener listener = new SpecificationSelectionListener();
 
 		td = new TableWrapData(TableWrapData.FILL);
 		Button addButton = toolkit.createButton(client, "Add", SWT.PUSH); //$NON-NLS-1$
-		addButton.setData("addInterface");
-		addButton.addSelectionListener(buttonSelectionListener);
+		addButton.setData("addSpecification");
+		addButton.addSelectionListener(listener);
 		addButton.setLayoutData(td);
 
-		/*
-		 * td = new TableWrapData(TableWrapData.FILL); Button editButton =
-		 * toolkit.createButton(client, "Edit", SWT.PUSH); //$NON-NLS-1$
-		 * editButton.setData("editProperty");
-		 * editButton.addSelectionListener(buttonSelectionListener);
-		 * editButton.setLayoutData(td);
-		 */
+		td = new TableWrapData(TableWrapData.FILL);
+		Button editButton = toolkit.createButton(client, "Edit", SWT.PUSH); //$NON-NLS-1$
+		editButton.setData("editSpecification");
+		editButton.addSelectionListener(listener);
+		editButton.setLayoutData(td);
 
 		td = new TableWrapData(TableWrapData.FILL);
 		Button deleteButton = toolkit.createButton(client, "Delete", SWT.PUSH); //$NON-NLS-1$
-		deleteButton.setData("deleteInterface");
-		deleteButton.addSelectionListener(buttonSelectionListener);
+		deleteButton.setData("deleteSpecification");
+		deleteButton.addSelectionListener(listener);
 		deleteButton.setLayoutData(td);
 
-		interfacesViewer = new TableViewer(t);
-		interfacesViewer.setContentProvider(new ArrayContentProvider());
-		interfacesViewer.setLabelProvider(new LabelProvider());
+		specificationsViewer = new TreeViewer(tree);
+		specificationsViewer.setContentProvider(new SpecificationContentProvider());
+		specificationsViewer.setLabelProvider(new SpecificationLabelProvider());
 
 		toolkit.paintBordersFor(s1);
 		s1.setClient(client);
+
+		// Adding menu to the specification view
+
+		final MenuManager menuMng = new MenuManager();
+		menuMng.setRemoveAllWhenShown(true);
+
+		menuMng.addMenuListener(new IMenuListener() {
+
+			/*
+			 * (non-Javadoc)
+			 * 
+			 * @see
+			 * org.eclipse.jface.action.IMenuListener#menuAboutToShow(org.eclipse
+			 * .jface.action.IMenuManager)
+			 */
+			public void menuAboutToShow(IMenuManager manager) {
+				IStructuredSelection selection = (IStructuredSelection) specificationsViewer.getSelection();
+				if (!selection.isEmpty()) {
+					// Add instance action is used on Component Types
+					if (selection.getFirstElement() instanceof ProvidesType) {
+						menuMng.add(new AddSpecificationProperty("Add property"));
+						menuMng.add(new AddSpecificationInterface("Add interface"));
+					}
+					if (selection.getFirstElement() instanceof PropertyType) {
+						menuMng.add(new RemoveSpecificationProperty("Delete property"));
+					}
+				}
+			}
+		});
+		specificationsViewer.getControl().setMenu(menuMng.createContextMenu(specificationsViewer.getControl()));
+
 	}
 
 	/**
@@ -471,7 +514,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 
 		Composite client = toolkit.createComposite(s1);
 		TableWrapLayout glayout = new TableWrapLayout();
-		glayout.makeColumnsEqualWidth = true;
+		glayout.makeColumnsEqualWidth = false;
 		glayout.numColumns = 2;
 
 		td.grabHorizontal = true;
@@ -479,31 +522,55 @@ public class ComponentDetailsPage implements IDetailsPage {
 
 		td = new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.FILL_GRAB);
 		td.rowspan = 3;
-		Table t = toolkit.createTable(client, SWT.NULL);
-		t.setLayoutData(td);
+		Table table = toolkit.createTable(client, SWT.NULL);
+		table.setLayoutData(td);
+		table.setHeaderVisible(true);
+		table.setLinesVisible(true);
+
+		PropertiesSelectionListener listener = new PropertiesSelectionListener();
 
 		td = new TableWrapData(TableWrapData.FILL);
 		Button addButton = toolkit.createButton(client, "Add", SWT.PUSH); //$NON-NLS-1$
 		addButton.setData("addProperty");
-		addButton.addSelectionListener(buttonSelectionListener);
+		addButton.addSelectionListener(listener);
 		addButton.setLayoutData(td);
 
 		td = new TableWrapData(TableWrapData.FILL);
 		Button editButton = toolkit.createButton(client, "Edit", SWT.PUSH); //$NON-NLS-1$
 		editButton.setData("editProperty");
-		editButton.addSelectionListener(buttonSelectionListener);
+		editButton.addSelectionListener(listener);
 		editButton.setLayoutData(td);
 
 		td = new TableWrapData(TableWrapData.FILL);
 		Button deleteButton = toolkit.createButton(client, "Delete", SWT.PUSH); //$NON-NLS-1$
 		deleteButton.setData("deleteProperty");
-		deleteButton.addSelectionListener(buttonSelectionListener);
+		deleteButton.addSelectionListener(listener);
 		deleteButton.setLayoutData(td);
 
-		propertiesViewer = new TableViewer(t);
+		propertiesViewer = new TableViewer(table);
 		propertiesViewer.setContentProvider(new ArrayContentProvider());
-		propertiesViewer.setLabelProvider(new ComponentElementsLabelProvider());
+		//propertiesViewer.setLabelProvider(new ComponentElementsLabelProvider());
+		
+		TableViewerColumn nameCol = new TableViewerColumn(propertiesViewer, SWT.NONE);
+		nameCol.getColumn().setWidth(80);
+		nameCol.getColumn().setText("Name");
+		nameCol.setLabelProvider(new PropertyLabelProvider(PropertyLabelProvider.NAME));
 
+		TableViewerColumn fieldCol = new TableViewerColumn(propertiesViewer, SWT.NONE);
+		fieldCol.getColumn().setWidth(100);
+		fieldCol.getColumn().setText("Field");
+		fieldCol.setLabelProvider(new PropertyLabelProvider(PropertyLabelProvider.FIELD));
+
+		TableViewerColumn typeCol = new TableViewerColumn(propertiesViewer, SWT.NONE);
+		typeCol.getColumn().setWidth(100);
+		typeCol.getColumn().setText("Type");
+		typeCol.setLabelProvider(new PropertyLabelProvider(PropertyLabelProvider.TYPE));
+
+		TableViewerColumn valueCol = new TableViewerColumn(propertiesViewer, SWT.NONE);
+		valueCol.getColumn().setWidth(100);
+		valueCol.getColumn().setText("Value");
+		valueCol.setLabelProvider(new PropertyLabelProvider(PropertyLabelProvider.VALUE));
+		
 		toolkit.paintBordersFor(s1);
 		s1.setClient(client);
 	}
@@ -527,7 +594,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 
 		Composite client = toolkit.createComposite(section);
 		TableWrapLayout glayout = new TableWrapLayout();
-		glayout.makeColumnsEqualWidth = true;
+		glayout.makeColumnsEqualWidth = false;
 		glayout.numColumns = 2;
 
 		td.grabHorizontal = true;
@@ -535,30 +602,50 @@ public class ComponentDetailsPage implements IDetailsPage {
 
 		td = new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.FILL_GRAB);
 		Table table = toolkit.createTable(client, SWT.NULL);
-		td.rowspan = 4;
+		table.setHeaderVisible(true);
+		table.setLinesVisible(true);
+		td.rowspan = 3;
 		table.setLayoutData(td);
+
+		DependenciesSelectionListener listener = new DependenciesSelectionListener();
 
 		Button addButton = toolkit.createButton(client, "Add", SWT.PUSH); //$NON-NLS-1$
 		addButton.setData("addDependency");
-		addButton.addSelectionListener(buttonSelectionListener);
+		addButton.addSelectionListener(listener);
 		td = new TableWrapData(TableWrapData.FILL);
 		addButton.setLayoutData(td);
 
 		Button editButton = toolkit.createButton(client, "Edit", SWT.PUSH); //$NON-NLS-1$
 		editButton.setData("editDependency");
-		editButton.addSelectionListener(buttonSelectionListener);
+		editButton.addSelectionListener(listener);
 		td = new TableWrapData(TableWrapData.FILL);
 		editButton.setLayoutData(td);
 
 		Button deleteButton = toolkit.createButton(client, "Delete", SWT.PUSH); //$NON-NLS-1$
 		deleteButton.setData("deleteDependency");
-		deleteButton.addSelectionListener(buttonSelectionListener);
+		deleteButton.addSelectionListener(listener);
 		td = new TableWrapData(TableWrapData.FILL);
 		deleteButton.setLayoutData(td);
 
 		dependenciesViewer = new TableViewer(table);
 		dependenciesViewer.setContentProvider(new ArrayContentProvider());
-		dependenciesViewer.setLabelProvider(new ComponentElementsLabelProvider());
+		// dependenciesViewer.setLabelProvider(new
+		// ComponentElementsLabelProvider());
+
+		TableViewerColumn nameCol = new TableViewerColumn(dependenciesViewer, SWT.NONE);
+		nameCol.getColumn().setWidth(80);
+		nameCol.getColumn().setText("Id");
+		nameCol.setLabelProvider(new DependencyLabelProvider(DependencyLabelProvider.NAME));
+
+		TableViewerColumn cardinalityCol = new TableViewerColumn(dependenciesViewer, SWT.NONE);
+		cardinalityCol.getColumn().setWidth(100);
+		cardinalityCol.getColumn().setText("Cardinality");
+		cardinalityCol.setLabelProvider(new DependencyLabelProvider(DependencyLabelProvider.CARDINALITY));
+
+		TableViewerColumn typeCol = new TableViewerColumn(dependenciesViewer, SWT.NONE);
+		typeCol.getColumn().setWidth(200);
+		typeCol.getColumn().setText("Type");
+		typeCol.setLabelProvider(new DependencyLabelProvider(DependencyLabelProvider.TYPE));
 
 		toolkit.paintBordersFor(section);
 		section.setClient(client);
@@ -628,19 +715,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 			if (input.getClassname() != null)
 				classNameText.setText(input.getClassname());
 
-			providesButton.setSelection(!input.getProvides().isEmpty());
-
-			/*
-			if (!input.getProvides().isEmpty()) {
-				ProvidesType provides = input.getProvides().get(0);
-				String specsStr = provides.getSpecifications();
-
-				List<String> specs = Arrays.asList(specsStr.split("\\s*,\\s*"));
-				interfacesViewer.setInput(specs);
-			}
-			*/
-			
-			interfacesViewer.setInput(ModelUtil.getInterfaces(input));
+			specificationsViewer.setInput(input);
 
 			dependenciesViewer.setInput(input.getRequires());
 
@@ -685,7 +760,6 @@ public class ComponentDetailsPage implements IDetailsPage {
 		invalidateText.addModifyListener(textFieldModifyListener);
 	}
 
-
 	private String concatInterface(String list, String newInterface) {
 		if (list.length() > 0)
 			list = list + "," + newInterface;
@@ -695,49 +769,28 @@ public class ComponentDetailsPage implements IDetailsPage {
 	}
 
 	/**
-	 * Determines if the dependency is based on a field
+	 * Executes a EMF command
 	 * 
-	 * @param requirement
-	 * @return
+	 * @param command
 	 */
-
-	/*
-	 * private boolean isFieldDependency(RequiresType requirement) { return
-	 * requirement.getCallback().isEmpty(); }
-	 */
+	private void executeCommand(Command command) {
+		ModelUtil.executeCommand(editor.getEditingDomain(), command);
+	}
 
 	/**
-	 * LabelProvider used for elements of a component(properties and
-	 * dependencies)
-	 * 
-	 * @author Gabriel
-	 * 
+	 * Refreshes the dependencies viewer
 	 */
-	class ComponentElementsLabelProvider extends LabelProvider implements ITableLabelProvider {
+	private void refreshDependenciesViewer() {
+		if (input != null)
+			dependenciesViewer.setInput(input.getRequires().toArray());
+	}
 
-		@Override
-		public Image getColumnImage(Object element, int columnIndex) {
-			return null;
-		}
-
-		@Override
-		public String getColumnText(Object element, int columnIndex) {
-			if (element instanceof RequiresType) {
-				RequiresType requirement = (RequiresType) element;
-				if (ModelUtil.isFieldDependency(requirement)) {
-					return requirement.getField();
-				} else { // Method Requirement
-					if (requirement.getId() != null)
-						return requirement.getId();
-					return "anonymous";
-				}
-			}
-			if (element instanceof PropertyType) {
-				PropertyType property = (PropertyType) element;
-				return property.getName();
-			}
-			return null;
-		}
+	/**
+	 * Refreshes the properties viewer
+	 */
+	private void refreshPropertiesViewer() {
+		if (input != null)
+			propertiesViewer.setInput(input.getProperties().get(0).getProperty().toArray());
 	}
 
 	/**
@@ -775,20 +828,14 @@ public class ComponentDetailsPage implements IDetailsPage {
 		}
 	}
 
-	/**
-	 * 
-	 * Handles all clicks action in buttons of details Section
-	 * 
-	 * @author Gabriel
-	 * 
-	 */
-	class ButtonSelectionListener extends SelectionAdapter {
+	class DependenciesSelectionListener extends SelectionAdapter {
 
 		@Override
 		public void widgetSelected(SelectionEvent event) {
 			if (input != null) {
 				String data = (String) event.widget.getData();
 				EditingDomain editingDomain = editor.getEditingDomain();
+
 				if (data.equals("addDependency")) {
 					DependencyDialog dialog = new DependencyDialog(editingDomain, null);
 					if (dialog.open() == Window.OK) {
@@ -814,7 +861,20 @@ public class ComponentDetailsPage implements IDetailsPage {
 						executeCommand(command);
 						refreshDependenciesViewer();
 					}
-				} else if (data.equals("addProperty")) {
+				}
+			}
+		}
+	}
+
+	class PropertiesSelectionListener extends SelectionAdapter {
+
+		@Override
+		public void widgetSelected(SelectionEvent event) {
+			if (input != null) {
+				String data = (String) event.widget.getData();
+				EditingDomain editingDomain = editor.getEditingDomain();
+
+				if (data.equals("addProperty")) {
 					PropertyDialog dialog = new PropertyDialog(editingDomain, null);
 					if (dialog.open() == Window.OK) {
 						Command command = CommandFactory.createAddPropertyCommand(editingDomain, input,
@@ -828,8 +888,9 @@ public class ComponentDetailsPage implements IDetailsPage {
 						PropertyType property = (PropertyType) selection.getFirstElement();
 						PropertyDialog dialog = new PropertyDialog(editingDomain, property);
 						if (dialog.open() == Window.OK) {
-							propertiesViewer.setInput(input.getProperties().get(0).getProperty().toArray());
-							editor.fireDirtyProperty();
+							refreshPropertiesViewer();
+							//propertiesViewer.setInput(input.getProperties().get(0).getProperty().toArray());
+							//editor.fireDirtyProperty();
 						}
 					}
 				} else if (data.equals("deleteProperty")) {
@@ -841,7 +902,99 @@ public class ComponentDetailsPage implements IDetailsPage {
 						executeCommand(command);
 						refreshPropertiesViewer();
 					}
-				} else if (data.equals("addInterface")) {
+				}
+			}
+		}
+	}
+
+	class ImplementationSelectionListener extends SelectionAdapter {
+
+		@Override
+		public void widgetSelected(SelectionEvent event) {
+			if (input != null) {
+				String data = (String) event.widget.getData();
+				// EditingDomain editingDomain = editor.getEditingDomain();
+				if (data.equals("clearClass")) {
+					classNameText.setText("");
+				} else if (data.equals("browseClass")) {
+					IType selectedType = JDTUtil.openSearchJDTDialog(IJavaSearchScope.SOURCES,
+					      IJavaElementSearchConstants.CONSIDER_CLASSES, false);
+					if (selectedType != null)
+						classNameText.setText(selectedType.getFullyQualifiedName());
+				}
+			}
+		}
+	}
+
+	class SpecificationSelectionListener extends SelectionAdapter {
+
+		@Override
+		public void widgetSelected(SelectionEvent event) {
+			if (input != null) {
+				String data = (String) event.widget.getData();
+				EditingDomain editingDomain = editor.getEditingDomain();
+				if (data.equals("addSpecification")) {
+					IType selectedType = JDTUtil.openSearchJDTDialog(IJavaSearchScope.SOURCES
+					      | IJavaSearchScope.APPLICATION_LIBRARIES | IJavaSearchScope.REFERENCED_PROJECTS,
+					      IJavaElementSearchConstants.CONSIDER_INTERFACES, true);
+					if (selectedType != null) {
+						String spec = selectedType.getFullyQualifiedName();
+						Command command = CommandFactory.createAddProvidesCommand(editingDomain, input, spec);
+						executeCommand(command);
+						specificationsViewer.refresh(false);
+					}
+				} else if (data.equals("editSpecification")) {
+					IStructuredSelection selection = (IStructuredSelection) specificationsViewer.getSelection();
+					if (selection.size() > 0) {
+						Object element = selection.getFirstElement();
+						if (element instanceof PropertyType) {
+							PropertyType property = (PropertyType) element;
+							PropertyDialog dialog = new PropertyDialog(editingDomain, property);
+							if (dialog.open() == Window.OK) {
+								specificationsViewer.refresh();
+							}
+						}
+					}
+					
+				} else if (data.equals("deleteSpecification")) {
+					IStructuredSelection selection = (IStructuredSelection) specificationsViewer.getSelection();
+					if (selection.size() > 0) {
+						Object element = selection.getFirstElement();
+						if (element instanceof ProvidesType) {
+							ProvidesType provides = (ProvidesType) element;
+							Command command = CommandFactory.createRemoveProvidesCommand(editingDomain, provides);
+							executeCommand(command);
+							specificationsViewer.refresh(false);
+						}
+						if (element instanceof PropertyType) {
+							PropertyType property = (PropertyType) element;
+							Command command = CommandFactory.createRemoveSpecPropertyCommand(editingDomain, property);
+							executeCommand(command);
+							specificationsViewer.refresh(false);
+						}
+					}
+				}
+			}
+		}
+	}
+	
+
+	/**
+	 * 
+	 * Handles all clicks action in buttons of details Section
+	 * 
+	 * @author Gabriel
+	 * 
+	 */
+	class ButtonSelectionListener extends SelectionAdapter {
+
+		@Override
+		public void widgetSelected(SelectionEvent event) {
+
+			if (input != null) {
+				String data = (String) event.widget.getData();
+				EditingDomain editingDomain = editor.getEditingDomain();
+				if (data.equals("addInterface")) {
 
 					IType selectedType = JDTUtil.openSearchJDTDialog(IJavaSearchScope.SOURCES
 					      | IJavaSearchScope.APPLICATION_LIBRARIES | IJavaSearchScope.REFERENCED_PROJECTS,
@@ -850,7 +1003,10 @@ public class ComponentDetailsPage implements IDetailsPage {
 					if (selectedType != null) {
 
 						String specsStr = "";
-						List<String> specsList = (List<String>) interfacesViewer.getInput();
+
+						// List<String> specsList = (List<String>)
+						// interfacesViewer.getInput();
+						List<String> specsList = new ArrayList<String>();
 						for (String spec : specsList)
 							specsStr = concatInterface(specsStr, spec);
 						specsStr = concatInterface(specsStr, selectedType.getFullyQualifiedName());
@@ -859,73 +1015,112 @@ public class ComponentDetailsPage implements IDetailsPage {
 						executeCommand(command);
 
 						List<String> specs = Arrays.asList(specsStr.split("\\s*,\\s*"));
-						interfacesViewer.setInput(specs);
 
 					}
 
 				} else if (data.equals("deleteInterface")) {
 
-					IStructuredSelection selection = (IStructuredSelection) interfacesViewer.getSelection();
-					if (selection.size() > 0) {
-						String interfaze = (String) selection.getFirstElement();
+					//String interfaze = (String) selection.getFirstElement();
+					String interfaze = "";
+					// List<String> specsListRO = (List<String>)
+					// interfacesViewer.getInput();
+					List<String> specsListRO = new ArrayList<String>();
+					ArrayList<String> specsList = new ArrayList<String>(specsListRO);
+					specsList.remove(interfaze);
 
-						List<String> specsListRO = (List<String>) interfacesViewer.getInput();
-						ArrayList<String> specsList = new ArrayList<String>(specsListRO);
-						specsList.remove(interfaze);
-
-						String specsStr = "";
-						for (String spec : specsList) {
-							specsStr = concatInterface(specsStr, spec);
-						}
-
-						Command command = CommandFactory.createAddSpecification(editingDomain, input, specsStr);
-						executeCommand(command);
-
-						List<String> specs = Arrays.asList(specsStr.split("\\s*,\\s*"));
-						interfacesViewer.setInput(specs);
+					String specsStr = "";
+					for (String spec : specsList) {
+						specsStr = concatInterface(specsStr, spec);
 					}
 
-				} else if (data.equals("providesService")) {
-					Command command;
-					if (providesButton.getSelection())
-						command = CommandFactory.createAddProvidesCommand(editingDomain, input);
-					else
-						command = CommandFactory.createRemoveProvidesCommand(editingDomain, input);
+					Command command = CommandFactory.createAddSpecification(editingDomain, input, specsStr);
 					executeCommand(command);
-				} else if (data.equals("browseClass")) {
 
-					IType selectedType = JDTUtil.openSearchJDTDialog(IJavaSearchScope.SOURCES,
-					      IJavaElementSearchConstants.CONSIDER_CLASSES, false);
-					if (selectedType != null)
-						classNameText.setText(selectedType.getFullyQualifiedName());
+					List<String> specs = Arrays.asList(specsStr.split("\\s*,\\s*"));
+					// interfacesViewer.setInput(specs);
 
 				}
 			}
 		}
 	}
 
-	/**
-	 * Executes a EMF command
-	 * 
-	 * @param command
-	 */
-	private void executeCommand(Command command) {
-		ModelUtil.executeCommand(editor.getEditingDomain(), command);
+	class AddSpecificationProperty extends Action {
+
+		public AddSpecificationProperty(String text) {
+			super(text);
+		}
+
+		@Override
+		public void run() {
+			IStructuredSelection selection = (IStructuredSelection) specificationsViewer.getSelection();
+			if (!selection.isEmpty()) {
+				if (selection.getFirstElement() instanceof ProvidesType) {
+					ProvidesType provides = (ProvidesType) selection.getFirstElement();
+					EditingDomain editingDomain = editor.getEditingDomain();
+					PropertyDialog dialog = new PropertyDialog(editingDomain, null);
+					if (dialog.open() == Window.OK) {
+						PropertyType prop = dialog.getProperty();
+						Command command = CommandFactory
+						      .createAddSpecPropertyCommand(editingDomain, provides, prop);
+						executeCommand(command);
+						specificationsViewer.refresh(false);
+					}
+				}
+			}
+		}
 	}
 
-	/**
-	 * Refreshes the dependencies viewer
-	 */
-	private void refreshDependenciesViewer() {
-		if (input != null)
-			dependenciesViewer.setInput(input.getRequires().toArray());
+	class RemoveSpecificationProperty extends Action {
+
+		public RemoveSpecificationProperty(String text) {
+			super(text);
+		}
+
+		@Override
+		public void run() {
+			IStructuredSelection selection = (IStructuredSelection) specificationsViewer.getSelection();
+			if (!selection.isEmpty()) {
+				if (selection.getFirstElement() instanceof PropertyType) {
+					PropertyType property = (PropertyType) selection.getFirstElement();
+
+					EditingDomain editingDomain = editor.getEditingDomain();
+					Command command = CommandFactory.createRemoveSpecPropertyCommand(editingDomain, property);
+					executeCommand(command);
+					specificationsViewer.refresh(false);
+				}
+			}
+		}
 	}
 
-	/**
-	 * Refreshes the properties viewer
-	 */
-	private void refreshPropertiesViewer() {
-		if (input != null)
-			propertiesViewer.setInput(input.getProperties().get(0).getProperty().toArray());
+	class AddSpecificationInterface extends Action {
+
+		public AddSpecificationInterface(String text) {
+			super(text);
+		}
+
+		@Override
+		public void run() {
+			IStructuredSelection selection = (IStructuredSelection) specificationsViewer.getSelection();
+			if (!selection.isEmpty()) {
+				if (selection.getFirstElement() instanceof ProvidesType) {
+					ProvidesType provides = (ProvidesType) selection.getFirstElement();
+					EditingDomain editingDomain = editor.getEditingDomain();
+
+					IType selectedType = JDTUtil.openSearchJDTDialog(IJavaSearchScope.SOURCES
+					      | IJavaSearchScope.APPLICATION_LIBRARIES | IJavaSearchScope.REFERENCED_PROJECTS,
+					      IJavaElementSearchConstants.CONSIDER_INTERFACES, true);
+					if (selectedType != null) {
+						String newInterface = selectedType.getFullyQualifiedName();
+						String interfaces = provides.getSpecifications() + "," + newInterface;
+
+						Command command = CommandFactory.createSetInterfacesProvidesCommand(editingDomain,
+						      provides, interfaces);
+						executeCommand(command);
+						specificationsViewer.refresh();
+					}
+				}
+			}
+		}
 	}
+
 }

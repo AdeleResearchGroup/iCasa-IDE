@@ -1,8 +1,6 @@
 package liglab.imag.fr.metadata.util;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -19,15 +17,10 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
  */
 public class ValidatorVisitor extends ASTVisitor {
 
-	private Map<String, String> propertiesFields;
-	private Map<String, String> dependenciesFields;
-	private Map<String, String> dependenciesMethods;
+	private ImplementationClassModel classModel;
 
-	public ValidatorVisitor(Map<String, String> propertiesFields, Map<String, String> dependenciesFields,
-	      Map<String, String> dependenciesMethods) {
-		this.propertiesFields = propertiesFields;
-		this.dependenciesFields = dependenciesFields;
-		this.dependenciesMethods = dependenciesMethods;
+	public ValidatorVisitor(ImplementationClassModel classModel) {
+		this.classModel = classModel;
 	}
 
 	@Override
@@ -35,16 +28,14 @@ public class ValidatorVisitor extends ASTVisitor {
 		List<VariableDeclarationFragment> fragments = node.fragments();
 		for (VariableDeclarationFragment fragment : fragments) {
 			String fieldName = fragment.getName().getIdentifier();
-			dependenciesFields.remove(fieldName);
-			propertiesFields.remove(fieldName);
+			classModel.removeField(fieldName);
 		}
-
 		return false;
 	}
 
 	@Override
 	public boolean visit(MethodDeclaration node) {
-		dependenciesMethods.remove(node.getName().getIdentifier());
+		classModel.removeMethod(node.getName().getIdentifier());
 		return false;
 	}
 
@@ -53,29 +44,9 @@ public class ValidatorVisitor extends ASTVisitor {
 	 * @param unit
 	 * @return
 	 */
-	public List<String> process(CompilationUnit unit) {
-		unit.accept(this);
-		List<String> errors = new ArrayList<String>();
-
-		for (String propertiesField : propertiesFields.keySet()) {
-			String propertyName = propertiesFields.get(propertiesField);
-			errors.add("Implementation class has to define the field " + propertiesField
-			      + " associated to property " + propertyName);
-		}
-
-		for (String dependenciesField : dependenciesFields.keySet()) {
-			String dependencyName = dependenciesFields.get(dependenciesField);
-			errors.add("Implementation class has to define the field " + dependenciesField
-			      + " associated to dependency " + dependencyName);
-		}
-
-		for (String dependenciesMethod : dependenciesMethods.keySet()) {
-			String dependencyName = dependenciesMethods.get(dependenciesMethod);
-			errors.add("Implementation class has to define the method " + dependenciesMethod
-			      + " associated to dependency " + dependencyName);
-		}
-
-		return errors;
+	public ImplementationClassModel process(CompilationUnit unit) {
+		unit.accept(this);	
+		return classModel;
 	}
 
 }
