@@ -37,7 +37,8 @@ public class ImplementationClassModel {
 	private Map<String, CallbackType> lifecycleMethods;
 	
 	private static String METHOD_BODY = "){\n// TODO: Add your implementation code here\n}\n";
-	
+
+
 
 	public ImplementationClassModel(ComponentType componentType) {
 	   this.componentType = componentType;
@@ -167,6 +168,8 @@ public class ImplementationClassModel {
 		code.append(";\n\n");
 		try {
 			implClass.createField(code.toString(), null, true, null);
+			if (specification != null && !specification.isEmpty())
+				createImport(implClass, specification);
 		} catch (JavaModelException e) {
 			e.printStackTrace();
 		}
@@ -186,7 +189,7 @@ public class ImplementationClassModel {
 		try {
 			implClass.createField(code.toString(), null, true, null);
 			if (specification != null && !specification.isEmpty())
-				implClass.getCompilationUnit().createImport(specification, implClass, null);
+				createImport(implClass, specification);
 		} catch (JavaModelException e) {
 			e.printStackTrace();
 		}
@@ -211,7 +214,7 @@ public class ImplementationClassModel {
 		try {
 			implClass.createMethod(code.toString(), null, true, null);
 			if (specification != null && !specification.isEmpty())
-				implClass.getCompilationUnit().createImport(specification, implClass, null);
+				createImport(implClass, specification);
 		} catch (JavaModelException e) {
 			e.printStackTrace();
 		}
@@ -236,7 +239,7 @@ public class ImplementationClassModel {
 		try {
 			implClass.createMethod(code.toString(), null, true, null);
 			if (specification != null && !specification.isEmpty())
-				implClass.getCompilationUnit().createImport(specification, implClass, null);
+				createImport(implClass, specification);
 		} catch (JavaModelException e) {
 			e.printStackTrace();
 		}
@@ -256,6 +259,13 @@ public class ImplementationClassModel {
 		}
 	}
 
+	private void createImport(IType implClass, String classToImport) throws JavaModelException {
+		String aPackage = JDTUtil.getJavaPackageName(classToImport);
+		if (aPackage.equals("java.lang"))
+			return;
+		implClass.getCompilationUnit().createImport(classToImport, implClass, null);
+	}
+	
 		
 	public void completeImplementationClass(IType implClass) {
 		// Generation of dependencies based on fields

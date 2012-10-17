@@ -15,11 +15,11 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
  * @author Gabriel
  *
  */
-public class ValidatorVisitor extends ASTVisitor {
+public class ComponentValidatorVisitor extends ASTVisitor {
 
 	private ImplementationClassModel classModel;
 
-	public ValidatorVisitor(ImplementationClassModel classModel) {
+	public ComponentValidatorVisitor(ImplementationClassModel classModel) {
 		this.classModel = classModel;
 	}
 

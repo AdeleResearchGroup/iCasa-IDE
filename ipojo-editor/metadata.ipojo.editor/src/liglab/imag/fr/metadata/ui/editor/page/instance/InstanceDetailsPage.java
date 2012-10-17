@@ -42,14 +42,14 @@ public class InstanceDetailsPage implements IDetailsPage {
 
 	private InstanceTypeItemProvider input;
 
-	private MetadataEditor editor;
+	//private MetadataEditor editor;
 
 	//private ComponentSelectionListener componentSelectionListener;
 	
 	private PropertyEditingSupport myEditingSupport;
 
-	public InstanceDetailsPage(MetadataEditor editor, TreeViewer componentsViewer) {
-		this.editor = editor;
+	public InstanceDetailsPage(TreeViewer componentsViewer) {
+		//this.editor = editor;
 		this.componentsViewer = componentsViewer;
 	}
 
@@ -207,7 +207,7 @@ public class InstanceDetailsPage implements IDetailsPage {
 		propertiesViewer.setContentProvider(new ArrayContentProvider());
 			
 		TableViewerColumn propertyCol = new TableViewerColumn(propertiesViewer, SWT.NONE);
-		propertyCol.getColumn().setWidth(300);
+		propertyCol.getColumn().setWidth(250);
 		propertyCol.getColumn().setText("Property");
 		propertyCol.setLabelProvider(new ColumnLabelProvider(){
 			
@@ -223,7 +223,7 @@ public class InstanceDetailsPage implements IDetailsPage {
 				
 		
 		TableViewerColumn valueCol = new TableViewerColumn(propertiesViewer, SWT.NONE);
-		valueCol.getColumn().setWidth(300);
+		valueCol.getColumn().setWidth(250);
 		valueCol.getColumn().setText("Value");
 		valueCol.setLabelProvider(new ColumnLabelProvider(){
 			
@@ -239,7 +239,23 @@ public class InstanceDetailsPage implements IDetailsPage {
 		});
 		
 		myEditingSupport = new PropertyEditingSupport(propertiesViewer, input, componentsViewer);
-		valueCol.setEditingSupport(myEditingSupport);		
+		valueCol.setEditingSupport(myEditingSupport);
+		
+		TableViewerColumn descriptionCol = new TableViewerColumn(propertiesViewer, SWT.NONE);
+		descriptionCol.getColumn().setWidth(250);
+		descriptionCol.getColumn().setText("Type");
+		descriptionCol.setLabelProvider(new ColumnLabelProvider(){
+			
+			@Override
+			public String getText(Object element) {
+				if (element instanceof IPropertyDescriptor) {
+					IPropertyDescriptor propertyDescriptor = (IPropertyDescriptor) element;
+					return propertyDescriptor.getDescription();
+            }
+				return null;
+			}
+			
+		});
 
 		toolkit.paintBordersFor(s1);
 		s1.setClient(client);

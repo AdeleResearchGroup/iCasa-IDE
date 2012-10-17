@@ -15,7 +15,7 @@ import liglab.imag.fr.metadata.ui.editor.PojoMasterDetailBlock;
 import liglab.imag.fr.metadata.ui.editor.providers.ComponentContentProvider;
 import liglab.imag.fr.metadata.util.ImplementationClassModel;
 import liglab.imag.fr.metadata.util.JDTUtil;
-import liglab.imag.fr.metadata.util.ValidatorVisitor;
+import liglab.imag.fr.metadata.util.ComponentValidatorVisitor;
 
 import org.apache.felix.ComponentType;
 import org.apache.felix.impl.ComponentTypeImpl;
@@ -267,7 +267,7 @@ public class ComponentMasterDetailBlock extends PojoMasterDetailBlock {
 			parser.setResolveBindings(true); // we need bindings later
 			                                 // on
 			CompilationUnit unit = (CompilationUnit) parser.createAST(null /* IProgressMonitor */); // parse
-			ValidatorVisitor visitor = new ValidatorVisitor(classModel);
+			ComponentValidatorVisitor visitor = new ComponentValidatorVisitor(classModel);
 			return visitor.process(unit);
 		}
 		return null;

@@ -3,12 +3,15 @@ package liglab.imag.fr.metadata.emf;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.security.auth.callback.Callback;
+
 import org.apache.felix.ComponentType;
 import org.apache.felix.FelixFactory;
 import org.apache.felix.InstancePropertyType;
 import org.apache.felix.InstanceType;
 import org.apache.felix.PropertiesType;
 import org.apache.felix.PropertyType;
+import org.apache.felix.ProvidesType;
 import org.eclipse.emf.common.command.Command;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.edit.domain.AdapterFactoryEditingDomain;
@@ -20,8 +23,9 @@ import org.eclipse.ui.views.properties.TextPropertyDescriptor;
 
 /**
  * A wrapper class to provide properties information to properties view
+ * 
  * @author Gabriel
- *
+ * 
  */
 public class InstanceTypeItemProvider implements IPropertySource2 {
 
@@ -41,15 +45,27 @@ public class InstanceTypeItemProvider implements IPropertySource2 {
 	@Override
 	public IPropertyDescriptor[] getPropertyDescriptors() {
 		List<PropertyDescriptor> descriptors = new ArrayList<PropertyDescriptor>();
-		descriptors.add(new TextPropertyDescriptor(INSTANCE_NAME, "Instance Name"));
+		TextPropertyDescriptor nameDescriptor = new TextPropertyDescriptor(INSTANCE_NAME, "Instance Name");
+		nameDescriptor.setDescription("Name");
+		descriptors.add(nameDescriptor);
 
 		ComponentType component = ModelUtil.getComponentFromInstance(instance);
 
+		// Configuration Properties
 		if (component.getProperties().size() > 0) {
 			PropertiesType propertiesType = component.getProperties().get(0);
 			List<PropertyType> properties = propertiesType.getProperty();
 			for (PropertyType propertyType : properties) {
-				descriptors.add(new TextPropertyDescriptor(propertyType.getName(), propertyType.getName()));
+				descriptors.add(createDescriptor(propertyType.getName(), "Configuration"));
+			}
+		}
+
+		// Services Properties
+		List<ProvidesType> providesList = component.getProvides();
+		for (ProvidesType provides : providesList) {
+			List<PropertyType> properties = provides.getProperty();
+			for (PropertyType propertyType : properties) {
+				descriptors.add(createDescriptor(propertyType.getName(), "Service"));
 			}
 		}
 
@@ -77,15 +93,17 @@ public class InstanceTypeItemProvider implements IPropertySource2 {
 
 	@Override
 	public void setPropertyValue(Object id, Object value) {
-		//EditingDomain editingDomain = editor.getEditingDomain();
-		EditingDomain editingDomain = AdapterFactoryEditingDomain.getEditingDomainFor((EObject)instance);
-		
+		// EditingDomain editingDomain = editor.getEditingDomain();
+		EditingDomain editingDomain = AdapterFactoryEditingDomain.getEditingDomainFor((EObject) instance);
+
 		Command command = null;
-		if (id.equals(INSTANCE_NAME)) { // The property to change is the instance Name
-			command = CommandFactory.createSetInstanceNameCommand(editingDomain, instance, (String)value);			
+		if (id.equals(INSTANCE_NAME)) { // The property to change is the instance
+												  // Name
+			command = CommandFactory.createSetInstanceNameCommand(editingDomain, instance, (String) value);
 		} else { // The property to change is a component property
 			InstancePropertyType property = ModelUtil.getPropertyInstance(instance, (String) id);
-			if (!((String) value).isEmpty()) { // A value can be assigned to this property
+			if (!((String) value).isEmpty()) { // A value can be assigned to this
+														  // property
 				if (property != null) {
 					command = CommandFactory.createSetPropertyInstanceValueCommand(editingDomain, property,
 					      (String) value);
@@ -96,15 +114,16 @@ public class InstanceTypeItemProvider implements IPropertySource2 {
 					property.setValue((String) value);
 					command = CommandFactory.createAddPropertyInstanceCommand(editingDomain, instance, property);
 				}
-			} else { // No value, the property must be eliminated from instance definition
+			} else { // No value, the property must be eliminated from instance
+						// definition
 				if (property != null) {
-					command = CommandFactory.createRemovePropertyInstanceCommand(editingDomain, instance, property);
+					command = CommandFactory
+					      .createRemovePropertyInstanceCommand(editingDomain, instance, property);
 				}
 			}
 		}
-		if (command != null && editingDomain!=null)
+		if (command != null && editingDomain != null)
 			ModelUtil.executeCommand(editingDomain, command);
-
 	}
 
 	@Override
@@ -121,5 +140,10 @@ public class InstanceTypeItemProvider implements IPropertySource2 {
 		return instance;
 	}
 
-
+	private TextPropertyDescriptor createDescriptor(String name, String type) {
+		TextPropertyDescriptor descriptor = new TextPropertyDescriptor(name, name);
+		descriptor.setDescription(type);
+		return descriptor;
+	}
+	
 }

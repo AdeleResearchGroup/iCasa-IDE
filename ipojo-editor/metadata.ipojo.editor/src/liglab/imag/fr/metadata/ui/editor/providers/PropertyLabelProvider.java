@@ -36,7 +36,7 @@ public class PropertyLabelProvider extends ColumnLabelProvider {
 				return property.getField();
 			
 			if (attribute == TYPE) {
-				String specification = property.getField();
+				String specification = property.getType();
 				if (specification!=null && !specification.isEmpty())
 					return specification;
 				return "Unknown";

@@ -25,6 +25,9 @@ public class ComponentEditorPlugin extends AbstractUIPlugin {
 	public static final String IMG_VERTICAL = "vertical"; //$NON-NLS-1$
 	public static final String IMG_COMPONENT = "component"; //$NON-NLS-1$
 	public static final String IMG_INSTANCE = "instance"; //$NON-NLS-1$
+	
+	
+	public static final String DIRECTORY_PREFERENCE = "Directory_Preference";
 
 	/**
 	 * The constructor

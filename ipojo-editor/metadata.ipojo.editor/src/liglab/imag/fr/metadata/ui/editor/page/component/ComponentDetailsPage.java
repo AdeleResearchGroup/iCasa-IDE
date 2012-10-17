@@ -522,7 +522,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 
 		td = new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.FILL_GRAB);
 		td.rowspan = 3;
-		Table table = toolkit.createTable(client, SWT.NULL);
+		Table table = toolkit.createTable(client, SWT.FULL_SELECTION);
 		table.setLayoutData(td);
 		table.setHeaderVisible(true);
 		table.setLinesVisible(true);
@@ -601,7 +601,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 		client.setLayout(glayout);
 
 		td = new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.FILL_GRAB);
-		Table table = toolkit.createTable(client, SWT.NULL);
+		Table table = toolkit.createTable(client, SWT.FULL_SELECTION);
 		table.setHeaderVisible(true);
 		table.setLinesVisible(true);
 		td.rowspan = 3;

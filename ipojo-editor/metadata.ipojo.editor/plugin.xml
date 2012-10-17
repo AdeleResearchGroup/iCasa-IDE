@@ -24,6 +24,7 @@
             priority="normal">
       </content-type>
    </extension>
+   <!--
    <extension
          point="org.eclipse.ui.popupMenus">
       <objectContribution
@@ -37,6 +38,7 @@
          </action>
       </objectContribution>
    </extension>
+   -->
    <extension
          id="icasa.env.marker"
          name="iCasa Problem"
@@ -47,6 +49,51 @@
       <attribute
             name="component">
       </attribute>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            category="metadata.ipojo.editor.general"
+            class="liglab.imag.fr.metadata.ui.editor.preferences.DeploymentDirectoryPage"
+            id="metadata.ipojo.editor.deploymentPage"
+            name="iCasa Preferences">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            defaultHandler="liglab.imag.fr.metadata.ui.editor.handlers.DeploymentBundleHandler"
+            id="metadata.ipojo.editor.deployment.command"
+            name="Bundle Deployment">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:org.eclipse.jdt.ui.PackageExplorer">
+         <menu
+               label="iCasa" id="metadata.ipojo.editor.menu3">
+            <command
+                  commandId="metadata.ipojo.editor.deployment.command"
+                  label="iCasa Bundle Deployment"
+                  style="push">
+               <visibleWhen
+                     checkEnabled="false">
+                  <with
+                        variable="selection">
+                     <iterate
+                           ifEmpty="false"
+                           operator="and">
+                        <instanceof
+                              value="org.eclipse.jdt.core.IJavaProject">
+                        </instanceof>
+                     </iterate>
+                  </with>
+               </visibleWhen>
+            </command>
+         </menu>
+      </menuContribution>
    </extension>
 
 </plugin>

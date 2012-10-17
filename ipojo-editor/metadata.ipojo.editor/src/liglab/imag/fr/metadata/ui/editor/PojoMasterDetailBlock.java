@@ -5,10 +5,12 @@ package liglab.imag.fr.metadata.ui.editor;
 
 import liglab.imag.fr.metadata.editor.ComponentEditorPlugin;
 import liglab.imag.fr.metadata.emf.CommandFactory;
+import liglab.imag.fr.metadata.emf.ModelUtil;
 import liglab.imag.fr.metadata.ui.editor.providers.ComponentLabelProvider;
 
 import org.apache.felix.ComponentType;
 import org.eclipse.emf.common.command.Command;
+import org.eclipse.emf.edit.domain.EditingDomain;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -23,6 +25,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.MasterDetailsBlock;
@@ -31,6 +34,8 @@ import org.eclipse.ui.forms.editor.FormPage;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.forms.widgets.Section;
+import org.eclipse.ui.forms.widgets.TableWrapData;
+import org.eclipse.ui.forms.widgets.TableWrapLayout;
 
 /**
  * Base class for the Master-Details Block using the component list as master
@@ -88,44 +93,25 @@ public abstract class PojoMasterDetailBlock extends MasterDetailsBlock {
 
 		GridData gd = new GridData(GridData.FILL_BOTH);
 		gd.heightHint = 20;
-		gd.widthHint = 100;
+		gd.widthHint = 140;
 		gd.verticalSpan = 2;
+
 		tree.setLayoutData(gd);
 
 		if (addEditionButtons()) {
+			
+			AddRemoveSelectionListener listener = new AddRemoveSelectionListener();
+			
 			Button addButton = toolkit.createButton(client, "Add", SWT.PUSH); //$NON-NLS-1$
-			addButton.addSelectionListener(new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					MetadataEditor editor = (MetadataEditor) page.getEditor();
-					Command command = CommandFactory.createAddComponentTypeCommand(editor.getEditingDomain(),
-					      editor.getModel());
-					editor.getEditingDomain().getCommandStack().execute(command);
-					componentsViewer.refresh();
-				}
-
-			});
-
-			gd = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+			addButton.setData("add");
+			addButton.addSelectionListener(listener);
+			gd = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL);
 			addButton.setLayoutData(gd);
 
 			Button deleteButton = toolkit.createButton(client, "Delete", SWT.PUSH); //$NON-NLS-1$
-			deleteButton.addSelectionListener(new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					IStructuredSelection selection = (IStructuredSelection) componentsViewer.getSelection();
-					if (!selection.isEmpty()) {
-						ComponentType componentType = (ComponentType) selection.getFirstElement();
-						MetadataEditor editor = (MetadataEditor) page.getEditor();
-						Command command = CommandFactory.createRemoveComponentTypeCommand(
-						      editor.getEditingDomain(), componentType);
-						editor.getEditingDomain().getCommandStack().execute(command);
-						componentsViewer.refresh();
-					}
-				}
-			});
-
-			gd = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+			deleteButton.setData("remove");
+			deleteButton.addSelectionListener(listener);
+			gd = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL);
 			deleteButton.setLayoutData(gd);
 		}
 
@@ -142,20 +128,18 @@ public abstract class PojoMasterDetailBlock extends MasterDetailsBlock {
 		componentsViewer.setLabelProvider(new ComponentLabelProvider());
 		MetadataEditor editor = (MetadataEditor) page.getEditor();
 		componentsViewer.setInput(editor.getModel());
-		// componentsViewer.addSelectionChangedListener(new
-		// MySelectionListener());
 
 		toolkit.paintBordersFor(client);
 
 		form = (SashForm) parent;
-		
+
 		page.getEditorSite().setSelectionProvider(componentsViewer);
-		
-		
+
 		addContextMenu();
 
 	}
 
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -197,31 +181,58 @@ public abstract class PojoMasterDetailBlock extends MasterDetailsBlock {
 
 	/**
 	 * Subclasses have to define if editions buttons (Add, Delete) are available
+	 * 
 	 * @return true if buttons are available, false if not
 	 */
 	protected abstract boolean addEditionButtons();
 
 	/**
 	 * Subclasses have to define the message to be shown in the panel
+	 * 
 	 * @return
 	 */
 	protected abstract String getPanelMessage();
-	
+
 	/**
 	 * Subclasses have to define the title to be shown in the panel
+	 * 
 	 * @return
 	 */
 	protected abstract String getPanelTitle();
 
 	/**
 	 * Subclasses have to provide the content provider use in the table
+	 * 
 	 * @return
 	 */
 	public abstract IContentProvider getContentProvider();
-	
+
 	/**
 	 * Defines the context menu used in the component list
 	 */
 	protected abstract void addContextMenu();
+
+	class AddRemoveSelectionListener extends SelectionAdapter {
+		@Override
+		public void widgetSelected(SelectionEvent event) {
+			String data = (String) event.widget.getData();
+			EditingDomain editingDomain = editor.getEditingDomain();
+
+			if (data.equals("add")) {
+				MetadataEditor editor = (MetadataEditor) page.getEditor();
+				Command command = CommandFactory.createAddComponentTypeCommand(editingDomain, editor.getModel());
+				ModelUtil.executeCommand(editingDomain, command);
+				componentsViewer.refresh();
+			} else if (data.equals("remove")) {
+				IStructuredSelection selection = (IStructuredSelection) componentsViewer.getSelection();
+				if (!selection.isEmpty()) {
+					ComponentType componentType = (ComponentType) selection.getFirstElement();
+					Command command = CommandFactory.createRemoveComponentTypeCommand(editingDomain, componentType);
+					ModelUtil.executeCommand(editingDomain, command);
+					componentsViewer.refresh();
+				}
+			}
+		}
+	}
 
 }

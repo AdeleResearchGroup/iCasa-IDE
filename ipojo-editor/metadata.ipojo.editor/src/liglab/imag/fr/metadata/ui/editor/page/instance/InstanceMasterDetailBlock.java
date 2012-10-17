@@ -49,7 +49,7 @@ public class InstanceMasterDetailBlock extends PojoMasterDetailBlock {
 	 */
 	@Override
 	protected void registerPages(DetailsPart detailsPart) {		
-		detailsPart.registerPage(InstanceTypeItemProvider.class, new InstanceDetailsPage(editor, componentsViewer));
+		detailsPart.registerPage(InstanceTypeItemProvider.class, new InstanceDetailsPage(componentsViewer));
 	}
 
 	@Override
