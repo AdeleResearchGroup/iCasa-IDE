@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" href="style.css" type="text/css" media="screen" />
+<title>iPOJO Nature for Eclipse Usage</title>
+</head>
+<body>
+	<h1>iPOJO Nature plug-in usage</h1>
+
+	<h2>Table of Contents</h2>
+	<ul>
+		<li><a href="#annotations">Add the annotations library</a></li>
+		<li><a href="#change-metadata">Specify the metadata.xml file
+				to use</a></li>
+		<li><a href="#exporter">Export manipulated bundles</a></li>
+	</ul>
+
+	
+
+	<h2 id="#annotations">Add the annotations library</h2>
+	<p>This plug-in embeds a version of iPOJO annotations library,
+		which can be added to a project build path. The project will reference
+		a plug-in library that does not depend on the Eclipse installation
+		location nor the workspace location.</p>
+
+	<ol>
+		<li>Right-click a Java or PDE project and select <strong>Build
+				Path &gt; Add library</strong></li>
+		<li>Select <strong>iPOJO Annotations</strong>, then click <strong>Next</strong>
+			<div>
+				<img src="images/add-library.png" alt="Select iPOJO Annotations" />
+			</div>
+		</li>
+		<li>A page shows the location of the JAR file that will be used,
+			click <strong>Finish</strong>
+		</li>
+		<li>The build path of the project now contains the annotations
+			library :
+			<div>
+				<img src="images/annotation-container.png" alt="Export wizard" />
+			</div>
+		</li>
+	</ol>
+
+	<p>This method also works on project without the iPOJO nature.</p>
+
+	<h2 id="#change-metadata">
+		Specify the <em>metadata.xml</em> file to use
+	</h2>
+	<p>
+		By default, the plug-in will use the first <em>metadata.xml</em> file
+		found to prepare the manipulation. Also, it is able to use a specified
+		meta data file.
+	</p>
+
+	<ol>
+		<li>Right-click on a Java/PDE project <em>that has the iPOJO
+				nature</em> and select <strong>Properties</strong>
+		</li>
+		<li>Select <strong>iPOJO Project</strong>
+			<div>
+				<img src="images/specify-metadata.png" alt="Specify metadata" />
+			</div></li>
+		<li>On the page select the file to use as iPOJO meta data. The
+			path can contain Eclipse variables.</li>
+		<li>You can use <em>Restore defaults</em> to return to the
+			standard behavior of the plug-in.
+		</li>
+	</ol>
+
+	<h2 id="#exporter">Export manipulated bundles</h2>
+	<p>iPOJO Nature plug-in also provides a bundle Exporter, which
+		allows to create bundles from iPOJO and pure-Java projects.</p>
+
+	<ol>
+		<li>Open the Export wizard <strong>File &gt; Export</strong></li>
+		<li>Select <strong>iPOJO Bundles &gt; iPOJO Bundle</strong></li>
+		<li>Select the export options :
+			<div>
+				<img src="images/export-wizard.png" alt="Export wizard" />
+			</div>
+			<ul>
+				<li>Check the projects to export. They will be (re-)built if
+					necessary</li>
+				<li>Check <strong>Use build.properties</strong> if you're
+					willing to embed files in the output JAR using the <em>build.properties</em>
+					file
+				</li>
+				<li>Select an output folder</li>
+			</ul>
+		</li>
+		<li>Click <strong>Finish</strong></li>
+	</ol>
+
+	<p>
+		The exported bundles files names will be their symbolic name : the
+		version <strong>does not</strong> appear in the files names.
+	</p>
+	<p>
+		Existing bundles with the same files names are overwritten <strong>without</strong>
+		confirmation.
+	</p>
+</body>
+</html>

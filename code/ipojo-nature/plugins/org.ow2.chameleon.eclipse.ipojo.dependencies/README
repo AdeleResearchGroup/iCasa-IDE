@@ -1,0 +1,8 @@
+This project must contain the iPOJO Core and the patched version of the iPOJO
+Manipulator. It has been created in order to have an Equinox 'plugin' version
+of the iPOJO Core and Manipulator JAR files.
+
+The constant-output.patch contains the patch to be applied on ipojo project
+group root in order to have a stable Manifest.mf file content.
+It uses TreeMap and LinkedHashMap instead of HashMap to conserve the Elements
+and Elements' attributes order over manipulations.
