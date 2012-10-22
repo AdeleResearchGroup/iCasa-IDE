@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/metadata.ipojo.editor.feature_1.0.0.201210221405.jar" id="metadata.ipojo.editor.feature" version="1.0.0.201210221405">
+      <category name="iCasa Application Specification"/>
+   </feature>
+   <feature url="features/org.ow2.chameleon.eclipse.ipojo.dependencies.feature_1.9.0.201210221405.jar" id="org.ow2.chameleon.eclipse.ipojo.dependencies.feature" version="1.9.0.201210221405">
+      <category name="iPojo Builder"/>
+   </feature>
+   <feature url="features/org.ow2.chameleon.eclipse.ipojo.nature.feature_1.0.1.201210221405.jar" id="org.ow2.chameleon.eclipse.ipojo.nature.feature" version="1.0.1.201210221405">
+      <category name="iPojo Builder"/>
+   </feature>
+   <feature url="features/au.com.forge.apache.felix.pdesupport_0.1.6.jar" id="au.com.forge.apache.felix.pdesupport" version="0.1.6">
+      <category name="Felix Execution Eclipse"/>
+   </feature>
+   <category-def name="iCasa Application Specification" label="iCasa Application Specification"/>
+   <category-def name="iPojo Builder" label="iPojo Builder"/>
+   <category-def name="Felix Execution Eclipse" label="Felix Execution Eclipse"/>
+</site>
