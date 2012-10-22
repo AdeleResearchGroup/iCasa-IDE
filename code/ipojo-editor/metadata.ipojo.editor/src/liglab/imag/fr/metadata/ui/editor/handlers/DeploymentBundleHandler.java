@@ -84,7 +84,7 @@ public class DeploymentBundleHandler extends AbstractHandler {
 				IPreferenceStore store = ComponentEditorPlugin.getDefault().getPreferenceStore();
 				String deploymentDirectory = store.getString(ComponentEditorPlugin.DIRECTORY_PREFERENCE);
 				if (deploymentDirectory != null && !deploymentDirectory.trim().isEmpty()) {
-					String message = "Deployment of " + project.getElementName() + " to " + deploymentDirectory;
+					String message = "Deployment of " + project.getElementName() + " to " + deploymentDirectory + " was sucessfull";
 
 					try {
 						exportBundle((IProject) project.getCorrespondingResource(), deploymentDirectory, null);
@@ -94,7 +94,7 @@ public class DeploymentBundleHandler extends AbstractHandler {
 						e.printStackTrace();
 					}
 					
-					MessageDialog.openConfirm(null, "test", message);
+					MessageDialog.openConfirm(null, "iCasa Environment", message);
 				}
 
 			}
