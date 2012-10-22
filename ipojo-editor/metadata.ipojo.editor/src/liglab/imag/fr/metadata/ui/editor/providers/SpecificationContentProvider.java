@@ -19,7 +19,6 @@ public class SpecificationContentProvider implements ITreeContentProvider {
 	 */
 	@Override
 	public void dispose() {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -28,7 +27,6 @@ public class SpecificationContentProvider implements ITreeContentProvider {
 	 */
 	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -61,7 +59,6 @@ public class SpecificationContentProvider implements ITreeContentProvider {
 	 */
 	@Override
 	public Object getParent(Object element) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

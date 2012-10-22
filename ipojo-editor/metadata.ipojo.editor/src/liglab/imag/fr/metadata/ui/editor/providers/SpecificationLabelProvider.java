@@ -8,6 +8,8 @@ import org.apache.felix.ProvidesType;
 import org.eclipse.jface.viewers.LabelProvider;
 
 /**
+ * Label Provider for Specification Table Viewer
+ * 
  * @author Gabriel
  *
  */
@@ -19,9 +21,17 @@ public class SpecificationLabelProvider extends LabelProvider {
 	      ProvidesType provides = (ProvidesType) element;
 	      return provides.getSpecifications();
       }
-		if (element instanceof PropertyType) {
+		if (element instanceof PropertyType) {			
 	      PropertyType property = (PropertyType) element;
-	      return property.getName();	      
+	      String label = "Name: " +  property.getName();
+	      String specification = property.getType();
+	      if (specification!=null && !specification.isEmpty())
+	      	label = label + " - Type: " + specification;
+	      String value = property.getValue();
+	      if (value!=null && !value.isEmpty())
+	      	label = label + " - Value :" + value;
+	      
+	      return label;	      
       }
 		return null;
 	}

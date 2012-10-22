@@ -4,7 +4,6 @@
 package liglab.imag.fr.metadata.ui.editor.page.instance;
 
 import liglab.imag.fr.metadata.emf.InstanceTypeItemProvider;
-import liglab.imag.fr.metadata.ui.editor.MetadataEditor;
 import liglab.imag.fr.metadata.util.PropertyEditingSupport;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -15,7 +14,6 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.forms.IDetailsPage;
@@ -41,10 +39,6 @@ public class InstanceDetailsPage implements IDetailsPage {
 	private TableViewer propertiesViewer;
 
 	private InstanceTypeItemProvider input;
-
-	//private MetadataEditor editor;
-
-	//private ComponentSelectionListener componentSelectionListener;
 	
 	private PropertyEditingSupport myEditingSupport;
 

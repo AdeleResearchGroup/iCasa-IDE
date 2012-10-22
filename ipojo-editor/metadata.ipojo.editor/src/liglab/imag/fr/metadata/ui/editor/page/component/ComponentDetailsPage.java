@@ -74,35 +74,67 @@ import org.eclipse.ui.forms.widgets.TableWrapLayout;
  */
 public class ComponentDetailsPage implements IDetailsPage {
 
+	/**
+	 * The form used to create GUI widgets
+	 */
 	private IManagedForm mform;
 
-	private ComponentType input;
+	/**
+	 * The component type being modified by this page
+	 */
+	private ComponentType componetType;
 
+	/**
+	 * The editor (:S used only to refresh the component list)
+	 */
 	private MetadataEditor editor;
 
+	/**
+	 * Component name widget
+	 */
 	private Text nameText;
 
+	/**
+	 * Component class name widget
+	 */
 	private Text classNameText;
-
+	
+	/**
+	 * Component invalidate method widget
+	 */
 	private Text invalidateText;
 
+	/**
+	 * Component validate method widget
+	 */
 	private Text validateText;
-
-	// private Button providesButton;
-
+	
+	/**
+	 * The component list viewer (:S only to updated when the name changes) 
+	 */
 	private Viewer componentsViewer;
 
-	// private TableViewer interfacesViewer;
-
+	/**
+	 * The dependencies list viewer
+	 */
 	private TableViewer dependenciesViewer;
 
+	/**
+	 * The properties list viewer
+	 */
 	private TableViewer propertiesViewer;
 
+	/**
+	 * The specification list viewer
+	 */
 	private TreeViewer specificationsViewer;
 
+	/**
+	 * Text modify listener (actions on text widgets)
+	 */
 	private TextFieldModifyListener textFieldModifyListener;
 
-	private ButtonSelectionListener buttonSelectionListener;
+	//private ButtonSelectionListener buttonSelectionListener;
 
 	public ComponentDetailsPage(MetadataEditor editor, Viewer componentsViewer) {
 		this.editor = editor;
@@ -189,7 +221,6 @@ public class ComponentDetailsPage implements IDetailsPage {
 	 */
 	@Override
 	public void refresh() {
-		System.out.println("refrehs was invoked");
 		update();
 	}
 
@@ -204,11 +235,10 @@ public class ComponentDetailsPage implements IDetailsPage {
 	public void selectionChanged(IFormPart part, ISelection selection) {
 		IStructuredSelection ssel = (IStructuredSelection) selection;
 		if (ssel.size() == 1) {
-			input = (ComponentType) ssel.getFirstElement();
+			componetType = (ComponentType) ssel.getFirstElement();
 		} else
-			input = null;
+			componetType = null;
 		update();
-
 	}
 
 	/*
@@ -228,7 +258,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 		parent.setLayout(layout);
 
 		textFieldModifyListener = new TextFieldModifyListener();
-		buttonSelectionListener = new ButtonSelectionListener();
+		
 		createGeneralSection(parent);
 		createSpecificationsSection(parent);
 		createPropertiesSection(parent);
@@ -239,8 +269,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 	}
 
 	/**
-	 * Creates the General section of component description (component name,
-	 * classname and provides)
+	 * Creates the General section of component description (component name)
 	 * 
 	 * @param parent
 	 */
@@ -271,6 +300,11 @@ public class ComponentDetailsPage implements IDetailsPage {
 		s1.setClient(client);
 	}
 
+	/**
+	 * Creates the implementation section (classname)
+	 * 
+	 * @param parent
+	 */
 	private void createImplementationSection(Composite parent) {
 		FormToolkit toolkit = mform.getToolkit();
 
@@ -329,84 +363,6 @@ public class ComponentDetailsPage implements IDetailsPage {
 		toolkit.paintBordersFor(s1);
 		s1.setClient(client);
 	}
-
-	/*
-	 * private void createInterfacesSection(Composite parent) { FormToolkit
-	 * toolkit = mform.getToolkit(); Section s1 = toolkit.createSection(parent,
-	 * Section.DESCRIPTION | Section.TITLE_BAR | Section.TWISTIE |
-	 * Section.EXPANDED); s1.marginWidth = 10;
-	 * s1.setText("Component Interfaces"); //$NON-NLS-1$
-	 * s1.setDescription("Set the interfaces of the selected component.");
-	 * //$NON-NLS-1$
-	 * 
-	 * TableWrapData td = new TableWrapData(TableWrapData.FILL_GRAB,
-	 * TableWrapData.FILL_GRAB); s1.setLayoutData(td);
-	 * 
-	 * Composite client = toolkit.createComposite(s1); TableWrapLayout glayout =
-	 * new TableWrapLayout(); glayout.makeColumnsEqualWidth = true;
-	 * glayout.numColumns = 2;
-	 * 
-	 * td.grabHorizontal = true; client.setLayout(glayout);
-	 * 
-	 * Vector languages = new Vector();
-	 * 
-	 * languages.add(new Language("Java", true)); languages.add(new Language("C",
-	 * false)); languages.add(new Language("C++", true)); languages.add(new
-	 * Language("SmallTalk", true));
-	 * 
-	 * interfacesViewer = new ListViewer(client);
-	 * 
-	 * interfacesViewer.setContentProvider(new IStructuredContentProvider() {
-	 * public Object[] getElements(Object inputElement) { Vector v = (Vector)
-	 * inputElement; return v.toArray(); }
-	 * 
-	 * public void dispose() { System.out.println("Disposing ..."); }
-	 * 
-	 * public void inputChanged(Viewer viewer, Object oldInput, Object newInput)
-	 * { System.out.println("Input changed: old=" + oldInput + ", new=" +
-	 * newInput); } });
-	 * 
-	 * interfacesViewer.setLabelProvider(new LabelProvider() { public Image
-	 * getImage(Object element) { return null; }
-	 * 
-	 * public String getText(Object element) { return ((Language) element).genre;
-	 * } });
-	 * 
-	 * interfacesViewer.setInput(languages);
-	 * 
-	 * td = new TableWrapData(TableWrapData.FILL); Button addButton =
-	 * toolkit.createButton(client, "Add", SWT.PUSH); //$NON-NLS-1$
-	 * addButton.setData("addProperty");
-	 * addButton.addSelectionListener(buttonSelectionListener);
-	 * addButton.setLayoutData(td);
-	 * 
-	 * td = new TableWrapData(TableWrapData.FILL); Button editButton =
-	 * toolkit.createButton(client, "Edit", SWT.PUSH); //$NON-NLS-1$
-	 * editButton.setData("editProperty");
-	 * editButton.addSelectionListener(buttonSelectionListener);
-	 * editButton.setLayoutData(td);
-	 * 
-	 * td = new TableWrapData(TableWrapData.FILL); Button deleteButton =
-	 * toolkit.createButton(client, "Delete", SWT.PUSH); //$NON-NLS-1$
-	 * deleteButton.setData("deleteProperty");
-	 * deleteButton.addSelectionListener(buttonSelectionListener);
-	 * deleteButton.setLayoutData(td);
-	 * 
-	 * toolkit.paintBordersFor(s1); s1.setClient(client);
-	 * 
-	 * }
-	 * 
-	 * public static class Language { public String genre; public boolean
-	 * isObjectOriented;
-	 * 
-	 * public Language() { }
-	 * 
-	 * public Language(String genre, boolean isObjectOriented) { this.genre =
-	 * genre; this.isObjectOriented = isObjectOriented; }
-	 * 
-	 * public String toString() { return "Lang: " + genre + " [" +
-	 * (isObjectOriented ? "Object-oriented" : "Procedural") + "]"; } }
-	 */
 
 	/**
 	 * Creates the Specification section of component description
@@ -704,22 +660,22 @@ public class ComponentDetailsPage implements IDetailsPage {
 	 * 
 	 */
 	private void update() {
-		if (input != null) {
+		if (componetType != null) {
 
 			removeListeners();
 
-			nameText.setText(input.getName());
+			nameText.setText(componetType.getName());
 
 			classNameText.setText("");
+			
+			if (componetType.getClassname() != null)
+				classNameText.setText(componetType.getClassname());
 
-			if (input.getClassname() != null)
-				classNameText.setText(input.getClassname());
+			specificationsViewer.setInput(componetType);
 
-			specificationsViewer.setInput(input);
+			dependenciesViewer.setInput(componetType.getRequires());
 
-			dependenciesViewer.setInput(input.getRequires());
-
-			List<PropertiesType> props = input.getProperties();
+			List<PropertiesType> props = componetType.getProperties();
 			if (props.size() > 0) {
 				List<PropertyType> innerProps = props.get(0).getProperty();
 				propertiesViewer.setInput(innerProps.toArray());
@@ -729,10 +685,10 @@ public class ComponentDetailsPage implements IDetailsPage {
 
 			validateText.setText("");
 			invalidateText.setText("");
-			CallbackType callback = ModelUtil.getValidateCallback(input);
+			CallbackType callback = ModelUtil.getValidateCallback(componetType);
 			if (callback != null)
 				validateText.setText(callback.getMethod());
-			callback = ModelUtil.getInvalidateCallback(input);
+			callback = ModelUtil.getInvalidateCallback(componetType);
 			if (callback != null)
 				invalidateText.setText(callback.getMethod());
 
@@ -781,16 +737,16 @@ public class ComponentDetailsPage implements IDetailsPage {
 	 * Refreshes the dependencies viewer
 	 */
 	private void refreshDependenciesViewer() {
-		if (input != null)
-			dependenciesViewer.setInput(input.getRequires().toArray());
+		if (componetType != null)
+			dependenciesViewer.setInput(componetType.getRequires().toArray());
 	}
 
 	/**
 	 * Refreshes the properties viewer
 	 */
 	private void refreshPropertiesViewer() {
-		if (input != null)
-			propertiesViewer.setInput(input.getProperties().get(0).getProperty().toArray());
+		if (componetType != null)
+			propertiesViewer.setInput(componetType.getProperties().get(0).getProperty().toArray());
 	}
 
 	/**
@@ -803,21 +759,21 @@ public class ComponentDetailsPage implements IDetailsPage {
 
 		@Override
 		public void modifyText(ModifyEvent event) {
-			if (input != null) {
+			if (componetType != null) {
 				EditingDomain editingDomain = editor.getEditingDomain();
 				Command command = null;
 
 				if (event.widget.equals(nameText)) {
-					command = CommandFactory.createSetComponentNameCommand(editingDomain, input,
+					command = CommandFactory.createSetComponentNameCommand(editingDomain, componetType,
 					      nameText.getText());
 				} else if (event.widget.equals(classNameText)) {
-					command = CommandFactory.createSetComponentClassCommand(editingDomain, input,
+					command = CommandFactory.createSetComponentClassCommand(editingDomain, componetType,
 					      classNameText.getText());
 				} else if (event.widget.equals(validateText)) {
-					command = CommandFactory.createSetValidateTransitionCommand(editingDomain, input,
+					command = CommandFactory.createSetValidateTransitionCommand(editingDomain, componetType,
 					      validateText.getText());
 				} else if (event.widget.equals(invalidateText)) {
-					command = CommandFactory.createSetInvalidateTransitionCommand(editingDomain, input,
+					command = CommandFactory.createSetInvalidateTransitionCommand(editingDomain, componetType,
 					      invalidateText.getText());
 				}
 				if (command != null)
@@ -832,14 +788,14 @@ public class ComponentDetailsPage implements IDetailsPage {
 
 		@Override
 		public void widgetSelected(SelectionEvent event) {
-			if (input != null) {
+			if (componetType != null) {
 				String data = (String) event.widget.getData();
 				EditingDomain editingDomain = editor.getEditingDomain();
 
 				if (data.equals("addDependency")) {
 					DependencyDialog dialog = new DependencyDialog(editingDomain, null);
 					if (dialog.open() == Window.OK) {
-						Command command = CommandFactory.createAddRequirementCommand(editingDomain, input,
+						Command command = CommandFactory.createAddRequirementCommand(editingDomain, componetType,
 						      dialog.getRequirement());
 						executeCommand(command);
 						refreshDependenciesViewer();
@@ -856,7 +812,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 					IStructuredSelection selection = (IStructuredSelection) dependenciesViewer.getSelection();
 					if (selection.size() > 0) {
 						RequiresType requirement = (RequiresType) selection.getFirstElement();
-						Command command = CommandFactory.createRemoveRequirementCommand(editingDomain, input,
+						Command command = CommandFactory.createRemoveRequirementCommand(editingDomain, componetType,
 						      requirement);
 						executeCommand(command);
 						refreshDependenciesViewer();
@@ -870,14 +826,14 @@ public class ComponentDetailsPage implements IDetailsPage {
 
 		@Override
 		public void widgetSelected(SelectionEvent event) {
-			if (input != null) {
+			if (componetType != null) {
 				String data = (String) event.widget.getData();
 				EditingDomain editingDomain = editor.getEditingDomain();
 
 				if (data.equals("addProperty")) {
 					PropertyDialog dialog = new PropertyDialog(editingDomain, null, true);
 					if (dialog.open() == Window.OK) {
-						Command command = CommandFactory.createAddPropertyCommand(editingDomain, input,
+						Command command = CommandFactory.createAddPropertyCommand(editingDomain, componetType,
 						      dialog.getProperty());
 						executeCommand(command);
 						refreshPropertiesViewer();
@@ -898,7 +854,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 					if (selection.size() > 0) {
 						PropertyType property = (PropertyType) selection.getFirstElement();
 						Command command = CommandFactory
-						      .createRemovePropertyCommand(editingDomain, input, property);
+						      .createRemovePropertyCommand(editingDomain, componetType, property);
 						executeCommand(command);
 						refreshPropertiesViewer();
 					}
@@ -911,7 +867,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 
 		@Override
 		public void widgetSelected(SelectionEvent event) {
-			if (input != null) {
+			if (componetType != null) {
 				String data = (String) event.widget.getData();
 				// EditingDomain editingDomain = editor.getEditingDomain();
 				if (data.equals("clearClass")) {
@@ -930,7 +886,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 
 		@Override
 		public void widgetSelected(SelectionEvent event) {
-			if (input != null) {
+			if (componetType != null) {
 				String data = (String) event.widget.getData();
 				EditingDomain editingDomain = editor.getEditingDomain();
 				if (data.equals("addSpecification")) {
@@ -939,7 +895,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 					      IJavaElementSearchConstants.CONSIDER_INTERFACES, true);
 					if (selectedType != null) {
 						String spec = selectedType.getFullyQualifiedName();
-						Command command = CommandFactory.createAddProvidesCommand(editingDomain, input, spec);
+						Command command = CommandFactory.createAddProvidesCommand(editingDomain, componetType, spec);
 						executeCommand(command);
 						specificationsViewer.refresh(false);
 					}
@@ -991,7 +947,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 		@Override
 		public void widgetSelected(SelectionEvent event) {
 
-			if (input != null) {
+			if (componetType != null) {
 				String data = (String) event.widget.getData();
 				EditingDomain editingDomain = editor.getEditingDomain();
 				if (data.equals("addInterface")) {
@@ -1011,7 +967,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 							specsStr = concatInterface(specsStr, spec);
 						specsStr = concatInterface(specsStr, selectedType.getFullyQualifiedName());
 
-						Command command = CommandFactory.createAddSpecification(editingDomain, input, specsStr);
+						Command command = CommandFactory.createAddSpecification(editingDomain, componetType, specsStr);
 						executeCommand(command);
 
 						List<String> specs = Arrays.asList(specsStr.split("\\s*,\\s*"));
@@ -1033,7 +989,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 						specsStr = concatInterface(specsStr, spec);
 					}
 
-					Command command = CommandFactory.createAddSpecification(editingDomain, input, specsStr);
+					Command command = CommandFactory.createAddSpecification(editingDomain, componetType, specsStr);
 					executeCommand(command);
 
 					List<String> specs = Arrays.asList(specsStr.split("\\s*,\\s*"));
