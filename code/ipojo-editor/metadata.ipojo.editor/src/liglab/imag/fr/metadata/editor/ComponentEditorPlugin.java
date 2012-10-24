@@ -2,13 +2,19 @@ package liglab.imag.fr.metadata.editor;
 
 import java.net.URL;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.pde.core.target.ITargetDefinition;
+import org.eclipse.pde.core.target.ITargetLocation;
+import org.eclipse.pde.core.target.ITargetPlatformService;
+import org.eclipse.pde.internal.core.target.DirectoryBundleContainer;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -20,6 +26,8 @@ public class ComponentEditorPlugin extends AbstractUIPlugin {
 
 	// The shared instance
 	private static ComponentEditorPlugin plugin;
+	
+	private BundleContext fBundleContext;
 
 	public static final String IMG_HORIZONTAL = "horizontal"; //$NON-NLS-1$
 	public static final String IMG_VERTICAL = "vertical"; //$NON-NLS-1$
@@ -45,6 +53,7 @@ public class ComponentEditorPlugin extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
+		fBundleContext = context;
 	}
 
 	/*
@@ -55,8 +64,9 @@ public class ComponentEditorPlugin extends AbstractUIPlugin {
 	 * )
 	 */
 	public void stop(BundleContext context) throws Exception {
+		fBundleContext = null;
 		plugin = null;
-		super.stop(context);
+		super.stop(context);		
 	}
 
 	/**
@@ -85,6 +95,25 @@ public class ComponentEditorPlugin extends AbstractUIPlugin {
 			}
 		} catch (Exception e) {
 		}
+	}
+	
+
+	
+	/**
+	 * Returns a service with the specified name or <code>null</code> if none.
+	 * 
+	 * @param serviceName name of service
+	 * @return service object or <code>null</code> if none
+	 */
+	public Object acquireService(String serviceName) {
+		ServiceReference reference = fBundleContext.getServiceReference(serviceName);
+		if (reference == null)
+			return null;
+		Object service = fBundleContext.getService(reference);
+		if (service != null) {
+			fBundleContext.ungetService(reference);
+		}
+		return service;
 	}
 
 }

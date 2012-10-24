@@ -104,6 +104,7 @@ public class ImplementationClassModel {
 	
 	private void calculateLifecycleMethods() {
 		lifecycleMethods = new HashMap<String, CallbackType>();
+		
 		CallbackType validateCallbackType = ModelUtil.getValidateCallback(componentType);
 		CallbackType invalidateCallbackType = ModelUtil.getInvalidateCallback(componentType);
 		if (validateCallbackType != null) {
@@ -140,6 +141,13 @@ public class ImplementationClassModel {
 			errors.add("Implementation class has to define the method " + dependenciesMethod
 			      + " associated to dependency " + dependencyName);
 		}
+
+		for (String lifecycleMethod : lifecycleMethods.keySet()) {			
+			errors.add("Implementation class has to define the method " + lifecycleMethod
+			      + " associated to the component lifecycle ");
+		}
+
+		
 		return errors;
 	}
 	

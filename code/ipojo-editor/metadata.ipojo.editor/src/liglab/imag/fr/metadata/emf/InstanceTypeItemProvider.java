@@ -3,8 +3,6 @@ package liglab.imag.fr.metadata.emf;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.security.auth.callback.Callback;
-
 import org.apache.felix.ComponentType;
 import org.apache.felix.FelixFactory;
 import org.apache.felix.InstancePropertyType;
