@@ -56,7 +56,7 @@
             category="metadata.ipojo.editor.general"
             class="liglab.imag.fr.metadata.ui.editor.preferences.DeploymentDirectoryPage"
             id="metadata.ipojo.editor.deploymentPage"
-            name="iCasa Preferences">
+            name="iPojo Preferences">
       </page>
    </extension>
    <extension

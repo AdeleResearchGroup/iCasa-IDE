@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <wizard
+            category="ipojo.nature.wizard.ipojo.category"
+            class="ipojo.project.creation.wizard.NewIPojoProjectWizard"
+            icon="icons/menu_marker_16.png"
+            id="ipojo.nature.wizard.NewProjectWizard"
+            name="iPojo Project "
+            project="true">
+      </wizard>
+      <primaryWizard
+            id="ipojo.nature.wizard.NewProjectWizard">
+      </primaryWizard>
+      <category
+            id="ipojo.nature.wizard.ipojo.category"
+            name="iPOJO Environment">
+      </category>
+   </extension>
+
+</plugin>

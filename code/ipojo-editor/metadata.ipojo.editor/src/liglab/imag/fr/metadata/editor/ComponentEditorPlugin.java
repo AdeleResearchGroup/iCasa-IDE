@@ -36,6 +36,7 @@ public class ComponentEditorPlugin extends AbstractUIPlugin {
 	
 	
 	public static final String DIRECTORY_PREFERENCE = "Directory_Preference";
+	public static final String ICASA_IMPORT_PREFERENCE = "iCasa_Import_Preference";
 
 	/**
 	 * The constructor

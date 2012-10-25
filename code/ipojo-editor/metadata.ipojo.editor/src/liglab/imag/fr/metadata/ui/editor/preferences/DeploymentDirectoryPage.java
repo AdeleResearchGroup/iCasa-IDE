@@ -3,6 +3,7 @@ package liglab.imag.fr.metadata.ui.editor.preferences;
 import liglab.imag.fr.metadata.editor.ComponentEditorPlugin;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.DirectoryFieldEditor;
 import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
@@ -15,8 +16,7 @@ import org.eclipse.pde.core.target.LoadTargetDefinitionJob;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
-public class DeploymentDirectoryPage extends FieldEditorPreferencePage
-		implements IWorkbenchPreferencePage {
+public class DeploymentDirectoryPage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 
 	DirectoryFieldEditor deploymentDirectoryFieldEditor;
 
@@ -24,8 +24,7 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage
 
 	public DeploymentDirectoryPage() {
 		super(GRID);
-		setPreferenceStore(ComponentEditorPlugin.getDefault()
-				.getPreferenceStore());
+		setPreferenceStore(ComponentEditorPlugin.getDefault().getPreferenceStore());
 		setDescription("Deployment Directory Page");
 	}
 
@@ -35,11 +34,11 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage
 	 * editor knows how to save and restore itself.
 	 */
 	public void createFieldEditors() {
-		deploymentDirectoryFieldEditor = (new DirectoryFieldEditor(
-				ComponentEditorPlugin.DIRECTORY_PREFERENCE,
-				"&OSGi installation directory:", getFieldEditorParent()));
+		deploymentDirectoryFieldEditor = (new DirectoryFieldEditor(ComponentEditorPlugin.DIRECTORY_PREFERENCE,
+		      "&OSGi (iPojo) installation directory:", getFieldEditorParent()));
 
 		addField(deploymentDirectoryFieldEditor);
+		addField(new BooleanFieldEditor(ComponentEditorPlugin.ICASA_IMPORT_PREFERENCE, "&Add iCasa packages to new iPojo Projects ", getFieldEditorParent()));
 	}
 
 	/*
@@ -55,8 +54,7 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage
 	public boolean performOk() {
 		boolean ok = super.performOk();
 		if (directoryModified) {
-			configureTargetPlaform(deploymentDirectoryFieldEditor
-					.getStringValue());
+			configureTargetPlaform(deploymentDirectoryFieldEditor.getStringValue());
 			directoryModified = false;
 		}
 
@@ -70,12 +68,10 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage
 		if (service == null)
 			return;
 
-		ITargetDefinition targetDefinition = getTargetDefinition("iPojo-RT",
-				service);
+		ITargetDefinition targetDefinition = getTargetDefinition("iPojo-RT", service);
 		if (targetDefinition != null) {
 			try {
-				ITargetHandle defaultHandler = service
-						.getWorkspaceTargetHandle();
+				ITargetHandle defaultHandler = service.getWorkspaceTargetHandle();
 				if (targetDefinition != defaultHandler.getTargetDefinition())
 					LoadTargetDefinitionJob.load(targetDefinition);
 			} catch (CoreException e) {
@@ -96,8 +92,7 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage
 		}
 	}
 
-	private ITargetDefinition getTargetDefinition(String name,
-			ITargetPlatformService service) {
+	private ITargetDefinition getTargetDefinition(String name, ITargetPlatformService service) {
 		ITargetHandle[] targetsHandlers = service.getTargets(null);
 		for (ITargetHandle targetHandle : targetsHandlers) {
 			ITargetDefinition definition;
@@ -111,18 +106,14 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage
 		return null;
 	}
 
-	private ITargetDefinition setTargetLocations(
-			ITargetDefinition targetDefinition, ITargetPlatformService service,
-			String path) {
+	private ITargetDefinition setTargetLocations(ITargetDefinition targetDefinition, ITargetPlatformService service,
+	      String path) {
 		String fileSeparator = System.getProperty("file.separator");
 
 		ITargetLocation[] containers = new ITargetLocation[3];
-		containers[0] = service.newDirectoryLocation(path + fileSeparator
-				+ "bin");
-		containers[1] = service.newDirectoryLocation(path + fileSeparator
-				+ "load");
-		containers[2] = service.newDirectoryLocation(path + fileSeparator
-				+ "bundle");
+		containers[0] = service.newDirectoryLocation(path + fileSeparator + "bin");
+		containers[1] = service.newDirectoryLocation(path + fileSeparator + "load");
+		containers[2] = service.newDirectoryLocation(path + fileSeparator + "bundle");
 
 		targetDefinition.setTargetLocations(containers);
 		return targetDefinition;
@@ -139,8 +130,8 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage
 	}
 
 	private ITargetPlatformService getTargetService() {
-		return (ITargetPlatformService) ComponentEditorPlugin.getDefault()
-				.acquireService(ITargetPlatformService.class.getName());
+		return (ITargetPlatformService) ComponentEditorPlugin.getDefault().acquireService(
+		      ITargetPlatformService.class.getName());
 	}
 
 }
