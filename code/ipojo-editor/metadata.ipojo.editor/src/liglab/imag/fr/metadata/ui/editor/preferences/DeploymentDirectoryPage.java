@@ -16,11 +16,18 @@ import org.eclipse.pde.core.target.LoadTargetDefinitionJob;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
+/**
+ * 
+ * @author Gabriel Pedraza Ferreira
+ *
+ */
 public class DeploymentDirectoryPage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 
-	DirectoryFieldEditor deploymentDirectoryFieldEditor;
+	private DirectoryFieldEditor deploymentDirectoryFieldEditor;
 
 	private boolean directoryModified = false;
+	
+	private static final String TARGET_PLATFORM_NAME = "iPojo-RT";
 
 	public DeploymentDirectoryPage() {
 		super(GRID);
@@ -38,7 +45,8 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage implement
 		      "&OSGi (iPojo) installation directory:", getFieldEditorParent()));
 
 		addField(deploymentDirectoryFieldEditor);
-		addField(new BooleanFieldEditor(ComponentEditorPlugin.ICASA_IMPORT_PREFERENCE, "&Add iCasa packages to new iPojo Projects ", getFieldEditorParent()));
+		addField(new BooleanFieldEditor(ComponentEditorPlugin.ICASA_IMPORT_PREFERENCE,
+		      "&Add iCasa packages to new iPojo Projects ", getFieldEditorParent()));
 	}
 
 	/*
@@ -61,6 +69,10 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage implement
 		return ok;
 	}
 
+	/**
+	 * Configures a new Felix-iPojo target platform
+	 * @param path
+	 */
 	private void configureTargetPlaform(String path) {
 
 		ITargetPlatformService service = getTargetService();
@@ -68,30 +80,33 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage implement
 		if (service == null)
 			return;
 
-		ITargetDefinition targetDefinition = getTargetDefinition("iPojo-RT", service);
-		if (targetDefinition != null) {
-			try {
-				ITargetHandle defaultHandler = service.getWorkspaceTargetHandle();
-				if (targetDefinition != defaultHandler.getTargetDefinition())
-					LoadTargetDefinitionJob.load(targetDefinition);
-			} catch (CoreException e) {
-				e.printStackTrace();
-			}
-
-		} else {
-			targetDefinition = service.newDefaultTarget();
-			targetDefinition.setName("iPojo-RT");
-		}
-
-		targetDefinition = setTargetLocations(targetDefinition, service, path);
+		ITargetDefinition targetDefinition = getTargetDefinition(TARGET_PLATFORM_NAME, service);
 
 		try {
+			if (targetDefinition != null) {
+
+				ITargetHandle defaultHandler = service.getWorkspaceTargetHandle();
+				targetDefinition = setTargetLocations(targetDefinition, service, path);
+				if (targetDefinition != defaultHandler.getTargetDefinition())
+					LoadTargetDefinitionJob.load(targetDefinition);
+			} else {
+				targetDefinition = service.newDefaultTarget();
+				targetDefinition.setName(TARGET_PLATFORM_NAME);
+				targetDefinition = setTargetLocations(targetDefinition, service, path);
+				LoadTargetDefinitionJob.load(targetDefinition);
+			}
 			service.saveTargetDefinition(targetDefinition);
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
 	}
 
+	/**
+	 * Find a target platform definition by name
+	 * @param name the platform name to search
+	 * @param service the TargetPlatform service
+	 * @return the found target platform service or null if not found
+	 */
 	private ITargetDefinition getTargetDefinition(String name, ITargetPlatformService service) {
 		ITargetHandle[] targetsHandlers = service.getTargets(null);
 		for (ITargetHandle targetHandle : targetsHandlers) {
@@ -106,6 +121,13 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage implement
 		return null;
 	}
 
+	/**
+	 * Sets the target location to use default directories
+	 * @param targetDefinition the TargetDefinition
+	 * @param service the TargetPlatform service
+	 * @param path new OSGi (Felix) platform path
+	 * @return
+	 */
 	private ITargetDefinition setTargetLocations(ITargetDefinition targetDefinition, ITargetPlatformService service,
 	      String path) {
 		String fileSeparator = System.getProperty("file.separator");
@@ -129,6 +151,10 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage implement
 
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
 	private ITargetPlatformService getTargetService() {
 		return (ITargetPlatformService) ComponentEditorPlugin.getDefault().acquireService(
 		      ITargetPlatformService.class.getName());

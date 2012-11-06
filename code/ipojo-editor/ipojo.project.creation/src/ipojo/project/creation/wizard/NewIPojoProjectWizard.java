@@ -11,9 +11,6 @@ import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExecutableExtension;
-import org.eclipse.core.runtime.IExtension;
-import org.eclipse.core.runtime.IExtensionPoint;
-import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Platform;
@@ -28,15 +25,11 @@ import org.eclipse.pde.internal.core.plugin.WorkspacePluginModelBase;
 import org.eclipse.pde.internal.core.project.PDEProject;
 import org.eclipse.pde.internal.ui.PDEPlugin;
 import org.eclipse.pde.internal.ui.PDEPluginImages;
-import org.eclipse.pde.internal.ui.PDEUIMessages;
-import org.eclipse.pde.internal.ui.elements.ElementList;
 import org.eclipse.pde.internal.ui.wizards.IProjectProvider;
 import org.eclipse.pde.internal.ui.wizards.NewWizard;
-import org.eclipse.pde.internal.ui.wizards.WizardElement;
 import org.eclipse.pde.internal.ui.wizards.plugin.NewProjectCreationOperation;
 import org.eclipse.pde.internal.ui.wizards.plugin.NewProjectCreationPage;
 import org.eclipse.pde.internal.ui.wizards.plugin.PluginFieldData;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.wizards.newresource.BasicNewProjectResourceWizard;
 import org.osgi.framework.Constants;
@@ -78,9 +71,16 @@ public class NewIPojoProjectWizard extends NewWizard implements IExecutableExten
 	 * @see org.eclipse.jface.wizard.Wizard#addPages()
 	 */
 	public void addPages() {
+		
+		// Sets the default the project as an standard osgi project
+		IDialogSettings settings = getDialogSettings();
+		settings.put("osgiProject", true);
+		settings.put("targetName", "standard");
+		
 		fMainPage = new NewProjectCreationPage("main", fPluginData, false, getSelection()); //$NON-NLS-1$
 		fMainPage.setTitle("iPojo Project");
 		fMainPage.setDescription("Create a new iPojo project");
+		
 		String pname = getDefaultValue(DEF_PROJECT_NAME);
 		if (pname != null)
 			fMainPage.setInitialProjectName(pname);
@@ -100,8 +100,6 @@ public class NewIPojoProjectWizard extends NewWizard implements IExecutableExten
 			}
 		};
 
-		IDialogSettings settings = getDialogSettings();
-		settings.put("generateActivator", true);
 
 		fContentPage = new IPojoPluginContentPage("page2", fProjectProvider, fMainPage, fPluginData); //$NON-NLS-1$
 

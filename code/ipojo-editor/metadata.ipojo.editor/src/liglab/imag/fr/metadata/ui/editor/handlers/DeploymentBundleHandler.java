@@ -47,7 +47,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.pde.core.plugin.TargetPlatform;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.osgi.framework.Constants;
 
