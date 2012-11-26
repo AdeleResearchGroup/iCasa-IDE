@@ -1,5 +1,7 @@
 package liglab.imag.fr.metadata.ui.editor.preferences;
 
+import java.io.File;
+
 import liglab.imag.fr.metadata.editor.ComponentEditorPlugin;
 
 import org.eclipse.core.runtime.CoreException;
@@ -13,20 +15,21 @@ import org.eclipse.pde.core.target.ITargetHandle;
 import org.eclipse.pde.core.target.ITargetLocation;
 import org.eclipse.pde.core.target.ITargetPlatformService;
 import org.eclipse.pde.core.target.LoadTargetDefinitionJob;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
 /**
  * 
  * @author Gabriel Pedraza Ferreira
- *
+ * 
  */
 public class DeploymentDirectoryPage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 
 	private DirectoryFieldEditor deploymentDirectoryFieldEditor;
 
 	private boolean directoryModified = false;
-	
+
 	private static final String TARGET_PLATFORM_NAME = "iPojo-RT";
 
 	public DeploymentDirectoryPage() {
@@ -41,8 +44,8 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage implement
 	 * editor knows how to save and restore itself.
 	 */
 	public void createFieldEditors() {
-		deploymentDirectoryFieldEditor = (new DirectoryFieldEditor(ComponentEditorPlugin.DIRECTORY_PREFERENCE,
-		      "&OSGi (iPojo) installation directory:", getFieldEditorParent()));
+		deploymentDirectoryFieldEditor = new DirectoryFieldEditor(ComponentEditorPlugin.DIRECTORY_PREFERENCE,
+		      "&OSGi (iPojo) installation directory:", getFieldEditorParent());
 
 		addField(deploymentDirectoryFieldEditor);
 		addField(new BooleanFieldEditor(ComponentEditorPlugin.ICASA_IMPORT_PREFERENCE,
@@ -69,8 +72,44 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage implement
 		return ok;
 	}
 
+
+	/*
+	@Override
+	protected void checkState() {
+	   super.checkState();
+	   if (!isValid())
+	   	return;
+
+      String fileName = deploymentDirectoryFieldEditor.getStringValue();
+      fileName = fileName.trim();
+      File file = new File(fileName);
+      boolean isOk = file.isDirectory() && file.exists();
+      setValid(isOk);
+      if (!isOk) {
+      	setErrorMessage("Must have a valid directory");
+      }      	  
+	}
+	
+	*/
+
+
+	
+	
+	@Override
+	public void propertyChange(PropertyChangeEvent event) {
+		super.propertyChange(event);
+		FieldEditor emmiter = (FieldEditor) event.getSource();
+
+		if (deploymentDirectoryFieldEditor == emmiter) 
+			directoryModified = true;
+	}
+
+	
+		
+
 	/**
 	 * Configures a new Felix-iPojo target platform
+	 * 
 	 * @param path
 	 */
 	private void configureTargetPlaform(String path) {
@@ -103,8 +142,11 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage implement
 
 	/**
 	 * Find a target platform definition by name
-	 * @param name the platform name to search
-	 * @param service the TargetPlatform service
+	 * 
+	 * @param name
+	 *           the platform name to search
+	 * @param service
+	 *           the TargetPlatform service
 	 * @return the found target platform service or null if not found
 	 */
 	private ITargetDefinition getTargetDefinition(String name, ITargetPlatformService service) {
@@ -123,9 +165,13 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage implement
 
 	/**
 	 * Sets the target location to use default directories
-	 * @param targetDefinition the TargetDefinition
-	 * @param service the TargetPlatform service
-	 * @param path new OSGi (Felix) platform path
+	 * 
+	 * @param targetDefinition
+	 *           the TargetDefinition
+	 * @param service
+	 *           the TargetPlatform service
+	 * @param path
+	 *           new OSGi (Felix) platform path
 	 * @return
 	 */
 	private ITargetDefinition setTargetLocations(ITargetDefinition targetDefinition, ITargetPlatformService service,
@@ -140,16 +186,7 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage implement
 		targetDefinition.setTargetLocations(containers);
 		return targetDefinition;
 	}
-
-	@Override
-	public void propertyChange(PropertyChangeEvent event) {
-		super.propertyChange(event);
-		FieldEditor emmiter = (FieldEditor) event.getSource();
-
-		if (deploymentDirectoryFieldEditor == emmiter)
-			directoryModified = true;
-
-	}
+	
 
 	/**
 	 * 
@@ -160,4 +197,23 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage implement
 		      ITargetPlatformService.class.getName());
 	}
 
+
+	
+	/*
+	class MyDirectoryFieldEditor extends DirectoryFieldEditor {
+		
+		public MyDirectoryFieldEditor(String name, String labelText, Composite parent) {
+			super(name, labelText, parent);
+		}
+		
+		@Override
+		protected boolean doCheckState() {
+		   boolean ok = super.doCheckState();
+		   System.out.println("doCheckState " + ok);
+		   return ok;
+		}
+		
+	}
+	*/
+	
 }

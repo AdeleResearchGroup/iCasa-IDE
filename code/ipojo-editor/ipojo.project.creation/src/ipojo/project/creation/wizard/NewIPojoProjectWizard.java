@@ -30,7 +30,14 @@ import org.eclipse.pde.internal.ui.wizards.NewWizard;
 import org.eclipse.pde.internal.ui.wizards.plugin.NewProjectCreationOperation;
 import org.eclipse.pde.internal.ui.wizards.plugin.NewProjectCreationPage;
 import org.eclipse.pde.internal.ui.wizards.plugin.PluginFieldData;
+import org.eclipse.ui.IEditorDescriptor;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkingSet;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.wizards.newresource.BasicNewProjectResourceWizard;
 import org.osgi.framework.Constants;
 
@@ -135,8 +142,6 @@ public class NewIPojoProjectWizard extends NewWizard implements IExecutableExten
 			}
 			BasicNewProjectResourceWizard.updatePerspective(fConfig);
 
-			// IPluginContentWizard contentWizard =
-			// fWizardListPage.getSelectedWizard();
 
 			getContainer().run(false, true, new NewProjectCreationOperation(fPluginData, fProjectProvider, null));
 
@@ -180,7 +185,10 @@ public class NewIPojoProjectWizard extends NewWizard implements IExecutableExten
 				}
 				fModel.save();
 			}
-
+			
+			closeManifest();
+			openFileInEditor(metadataFile);
+											
 			return true;
 		} catch (InvocationTargetException e) {
 			PDEPlugin.logException(e);
@@ -212,4 +220,35 @@ public class NewIPojoProjectWizard extends NewWizard implements IExecutableExten
 		return fPluginData.getVersion();
 	}
 
+	
+	private void closeManifest() {
+		IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+		IEditorReference[] references =  activePage.getEditorReferences();
+		IEditorReference manifestReference = null;
+		
+		for (IEditorReference iEditorReference : references) {
+         System.out.println(iEditorReference.getName());
+         if (iEditorReference.getName().equals("MANIFEST.MF")) {
+         	manifestReference = iEditorReference;
+         	break;
+         }
+         	
+      }
+		
+		if (manifestReference!=null) {
+			activePage.closeEditor(manifestReference.getEditor(false), false);
+		}
+	}
+	
+	private void openFileInEditor(IFile file) {
+		IEditorInput editorInput = new FileEditorInput(file);
+		IEditorDescriptor desc = PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(file.getName());
+		try {
+			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
+			      .openEditor(editorInput, desc.getId());
+		} catch (PartInitException e1) {
+			e1.printStackTrace();
+		}
+	}
+	
 }

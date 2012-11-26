@@ -163,11 +163,14 @@ public class ImplementationClassModel {
 		lifecycleMethods.remove(method);
 	}
 
-	private void generatePropertyCode(IType implClass, PropertyType property) {
+	private void generatePropertyCode(IType implClass, PropertyType property, boolean isComponent) {
 		String field = property.getField();
 		String specification = property.getType();
 		StringBuffer code = new StringBuffer();
-		code.append("/** Field for " + field + " property */\n");
+		if (isComponent)
+			code.append("/** Injected field for the component property " + property.getName() + " */\n");
+		else
+			code.append("/** Injected field for the service property " + property.getName() + " */\n");
 		if (specification != null && !specification.isEmpty())
 			code.append("private " + JDTUtil.getJavaClassName(specification) + " ");
 		else
@@ -255,7 +258,7 @@ public class ImplementationClassModel {
 	
 	private void generateLifecycleMethodCode(IType implClass, CallbackType callback) {
 		StringBuffer code = new StringBuffer();
-		code.append("/** Component Lyfecycle Method */\n");
+		code.append("/** Component Lifecycle Method */\n");
 		code.append("public void ");
 		code.append(callback.getMethod() + "(");
 		code.append(METHOD_BODY);
@@ -289,11 +292,11 @@ public class ImplementationClassModel {
       }		
 		// Generation of component configuration properties
 		for (PropertyType property : propertiesFields.values()) {
-	      generatePropertyCode(implClass, property);
+	      generatePropertyCode(implClass, property, true);
       }
 		// Generation of service properties
 		for (PropertyType property : servicePropertiesFields.values()) {
-	      generatePropertyCode(implClass, property);
+	      generatePropertyCode(implClass, property, false);
       }
 		
 		// Generation of lifecycle methods

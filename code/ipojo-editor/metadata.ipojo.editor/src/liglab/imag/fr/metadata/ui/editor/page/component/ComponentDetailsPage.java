@@ -261,8 +261,8 @@ public class ComponentDetailsPage implements IDetailsPage {
 		
 		createGeneralSection(parent);
 		createSpecificationsSection(parent);
+		createDependenciesSection(parent);		
 		createPropertiesSection(parent);
-		createDependenciesSection(parent);
 		createLifeCycleSection(parent);
 		createImplementationSection(parent);
 
@@ -374,7 +374,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 		Section s1 = toolkit.createSection(parent, Section.DESCRIPTION | Section.TITLE_BAR | Section.TWISTIE
 		      | Section.EXPANDED);
 		s1.marginWidth = 10;
-		s1.setText("Service Specification"); //$NON-NLS-1$
+		s1.setText("Provided Services Specifications"); //$NON-NLS-1$
 		s1.setDescription("Set the interfaces of the selected component."); //$NON-NLS-1$
 
 		TableWrapData td = new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.FILL_GRAB);
@@ -541,7 +541,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 		Section section = toolkit.createSection(parent, Section.DESCRIPTION | Section.TITLE_BAR
 		      | Section.TWISTIE | Section.EXPANDED);
 		section.marginWidth = 10;
-		section.setText("Component Dependencies"); //$NON-NLS-1$
+		section.setText("Required Services"); //$NON-NLS-1$
 		section.setDescription("Set the service dependencies of the selected component"); //$NON-NLS-1$
 
 		TableWrapData td = new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.TOP);

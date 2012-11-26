@@ -3,6 +3,9 @@
  */
 package liglab.imag.fr.metadata.ui.editor.page.instance;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import liglab.imag.fr.metadata.emf.CommandFactory;
 import liglab.imag.fr.metadata.emf.InstanceTypeItemProvider;
 import liglab.imag.fr.metadata.emf.ModelUtil;
@@ -127,16 +130,37 @@ public class InstanceMasterDetailBlock extends PojoMasterDetailBlock {
 				if (selection.getFirstElement() instanceof ComponentType) {	               
 					ComponentType component = (ComponentType) selection.getFirstElement();
 					InstanceType instance = FelixFactory.eINSTANCE.createInstanceType();					
-					String componentName =  component.getName();
-					instance.setComponent(componentName);
-					instance.setName(componentName + "-" + seq++);
+					instance.setComponent(component.getName());					
+					instance.setName(getInstanceName(component));
 					Command command = CommandFactory.createAddInstanceCommand(editor.getEditingDomain(), component, instance);
 					ModelUtil.executeCommand(editor.getEditingDomain(), command);
 					componentsViewer.refresh();
             }					
 			}
 		}
+		
+		private String getInstanceName(ComponentType component) {
+						
+			
+			List<String> instancesNames = new ArrayList<String>();
+			List<InstanceType> instances = ModelUtil.getInstances(component);
+			
+			for (InstanceType instance : instances) {
+				instancesNames.add(instance.getName());
+         }
+			
+			String componentName =  component.getName();
+			String newInstanceName = componentName + "-" + seq++;
+			while (instancesNames.contains(newInstanceName)) {
+				newInstanceName = componentName + "-" + seq++;
+			}
+						
+			return newInstanceName;
+		}
+		
 	}
+	
+
 	
 	/**
 	 * An action class used to remove an instance declaration

@@ -55,6 +55,20 @@ public class JDTUtil {
 	public static void openJavaEditor(IType type) {
 		IPath path = type.getPath();
 		IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
+		openFileInEditor(file);
+		/*
+		IEditorInput editorInput = new FileEditorInput(file);
+		IEditorDescriptor desc = PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(file.getName());
+		try {
+			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
+			      .openEditor(editorInput, desc.getId());
+		} catch (PartInitException e1) {
+			e1.printStackTrace();
+		}
+		*/
+	}
+	
+	public static void openFileInEditor(IFile file) {
 		IEditorInput editorInput = new FileEditorInput(file);
 		IEditorDescriptor desc = PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(file.getName());
 		try {
@@ -64,6 +78,7 @@ public class JDTUtil {
 			e1.printStackTrace();
 		}
 	}
+	
 
 	/**
 	 * Shows a Java Search dialog and returns the selection

@@ -200,12 +200,12 @@ public class PropertyDialog extends MetadataInputDialog {
 			String value = valueText.getText().trim();
 			if (m_property.getValue() != null) {
 				if (m_property.getValue().equals(value)) {
-					command = CommandFactory.createSetFieldPropertyCommand(editingDomain, m_property, value);
+					command = CommandFactory.createSetValuePropertyCommand(editingDomain, m_property, value);
 					compoundCommand.append(command);
 				}
 			} else {
 				if (!value.isEmpty()) {
-					command = CommandFactory.createSetFieldPropertyCommand(editingDomain, m_property, value);
+					command = CommandFactory.createSetValuePropertyCommand(editingDomain, m_property, value);
 					compoundCommand.append(command);
 				}
 			}

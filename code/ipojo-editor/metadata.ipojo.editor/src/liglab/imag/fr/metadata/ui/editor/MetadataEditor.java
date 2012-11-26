@@ -177,7 +177,14 @@ public class MetadataEditor extends FormEditor {
 			addPage(new InstanceMasterPage(this, "master-details-instance", "Components Configuration"));
 			//addPage(new InstanceMasterPage(this, "master-details-instance", "Instance Defintion"), getEditorInput());
 			// XML Editor is created
-			xmlEditor = new StructuredTextEditor();
+			xmlEditor = new StructuredTextEditor() {
+				@Override
+				public boolean isEditable() {
+				   return false;
+				}
+			}; 
+			
+			
 			int index = addPage(xmlEditor, getEditorInput());
 			setPageText(index, "XML (Read Only)");
 
