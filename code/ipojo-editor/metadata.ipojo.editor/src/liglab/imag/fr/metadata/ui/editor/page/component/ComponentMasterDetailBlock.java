@@ -152,7 +152,10 @@ public class ComponentMasterDetailBlock extends PojoMasterDetailBlock {
 			if (!selection.isEmpty()) {
 				ComponentType componentType = (ComponentType) selection.getFirstElement();
 				String fullClassName = componentType.getClassname();
-				List<String> interfaces = ModelUtil.getInterfaces(componentType);
+				if (fullClassName==null || fullClassName.isEmpty())
+					fullClassName = componentType.getName();
+				
+				List<String> interfaces = ModelUtil.getInterfaces(componentType);				
 				IType newClass = JDTUtil.openCreateJavaClassWizard(fullClassName, javaProject, interfaces);
 
 				ImplementationClassModel classModel = new ImplementationClassModel(componentType);

@@ -22,7 +22,7 @@ package au.com.forge.eclipse.pde.impl;
 
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
-import org.eclipse.pde.ui.launcher.OSGiLaunchConfigurationInitializer;
+import org.eclipse.pde.launching.OSGiLaunchConfigurationInitializer;
 
 /**
  * A launch configuration initialiser that removes all the project arguments
@@ -32,8 +32,7 @@ import org.eclipse.pde.ui.launcher.OSGiLaunchConfigurationInitializer;
  * @author Christopher Armstrong
  *
  */
-public class ApacheFelixLaunchInitializer extends
-		OSGiLaunchConfigurationInitializer {
+public class ApacheFelixLaunchInitializer extends OSGiLaunchConfigurationInitializer {
 	public void initialize(ILaunchConfigurationWorkingCopy configuration) {
 		super.initialize(configuration);
 		// We don't want any launch arguments, as the defaults fail on Felix for OSGi

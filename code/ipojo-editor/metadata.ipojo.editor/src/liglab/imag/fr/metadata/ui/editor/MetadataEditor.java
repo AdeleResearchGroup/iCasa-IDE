@@ -14,6 +14,7 @@ import liglab.imag.fr.metadata.ui.editor.page.instance.InstanceMasterPage;
 
 import org.apache.felix.DocumentRoot;
 import org.apache.felix.IpojoType;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.emf.common.command.BasicCommandStack;
@@ -41,10 +42,10 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
 import org.eclipse.ui.forms.editor.FormEditor;
-import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.MultiPageEditorSite;
 import org.eclipse.wst.sse.ui.StructuredTextEditor;
 import org.eclipse.wst.xml.core.internal.provisional.contenttype.ContentTypeIdForXML;
@@ -60,7 +61,7 @@ public class MetadataEditor extends FormEditor {
 	private IpojoType pojoModel;
 
 	
-	FileEditorInput fileEditorInput;
+	//FileEditorInput fileEditorInput;
 
 
 	/**
@@ -246,6 +247,14 @@ public class MetadataEditor extends FormEditor {
 		}
 		updateProblemIndication = true;
 		updateProblemIndication();
+		
+		// Build the project
+		try {
+	      ((IFileEditorInput)this.getEditorInput()).getFile().getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
+      } catch (CoreException e) {
+	      e.printStackTrace();
+      }
+		
 	}
 
 	@Override

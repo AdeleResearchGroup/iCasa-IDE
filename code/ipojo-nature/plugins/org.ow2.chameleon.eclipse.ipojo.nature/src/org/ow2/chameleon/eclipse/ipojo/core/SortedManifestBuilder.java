@@ -71,7 +71,8 @@ public class SortedManifestBuilder extends DefaultManifestBuilder {
        }
        
        // Write imports
-       att.putValue("Export-Package", printClauses(exports, "resolution:"));
+       if (!exports.isEmpty())
+      	 att.putValue("Export-Package", printClauses(exports, "resolution:"));
 	}
 	
 	

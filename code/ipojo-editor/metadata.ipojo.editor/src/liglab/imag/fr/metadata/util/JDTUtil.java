@@ -56,16 +56,6 @@ public class JDTUtil {
 		IPath path = type.getPath();
 		IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
 		openFileInEditor(file);
-		/*
-		IEditorInput editorInput = new FileEditorInput(file);
-		IEditorDescriptor desc = PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(file.getName());
-		try {
-			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
-			      .openEditor(editorInput, desc.getId());
-		} catch (PartInitException e1) {
-			e1.printStackTrace();
-		}
-		*/
 	}
 	
 	public static void openFileInEditor(IFile file) {
@@ -164,10 +154,14 @@ public class JDTUtil {
 		wizardPage.setPackageFragmentRoot(packageFragmentRoot, true);
 
 		// Sets the java class and package name
-		if (qualifiedClassName != null && qualifiedClassName.length() > 0) {
-			className = JDTUtil.getJavaClassName(qualifiedClassName);
-			packageName = JDTUtil.getJavaPackageName(qualifiedClassName);
-			wizardPage.setTypeName(className, true);
+		if (qualifiedClassName != null && !qualifiedClassName.isEmpty()) {
+			className = JDTUtil.getJavaClassName(qualifiedClassName).trim();
+			packageName = JDTUtil.getJavaPackageName(qualifiedClassName).trim();
+			if (!className.isEmpty())
+				wizardPage.setTypeName(className, true);				
+			else
+				wizardPage.setTypeName(qualifiedClassName + "Impl", true);
+										
 			if (packageFragmentRoot != null) {
 				if (!packageName.isEmpty()) {
 					IPackageFragment fragment = JDTUtil.createPackageFragment(packageName, packageFragmentRoot);
