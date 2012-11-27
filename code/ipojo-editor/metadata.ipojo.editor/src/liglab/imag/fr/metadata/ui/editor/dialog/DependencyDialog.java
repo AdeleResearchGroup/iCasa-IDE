@@ -74,7 +74,7 @@ public class DependencyDialog extends MetadataInputDialog {
 		
 
 		singleButton = new Button(cardinalityComposite, SWT.RADIO);
-		singleButton.setText("Scalar (0..1)");
+		singleButton.setText("Scalar (1..1)");
 		
 		singleButton.addSelectionListener(new SelectionAdapter() {
 			
@@ -86,7 +86,7 @@ public class DependencyDialog extends MetadataInputDialog {
 		});
 		
 		multipleButton = new Button(cardinalityComposite, SWT.RADIO);
-		multipleButton.setText("Multiple (0..n)");
+		multipleButton.setText("Multiple (1..n)");
 	    
 		multipleButton.addSelectionListener(new SelectionAdapter() {
 			
@@ -99,6 +99,14 @@ public class DependencyDialog extends MetadataInputDialog {
 		
 		optionalButton = new Button(cardinalityComposite, SWT.CHECK);
 		optionalButton.setText("Optional Dependency");
+		optionalButton.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				setDependencyTypeLabels();
+			}
+
+		});
 		
 
 		GridData dataLayoutData = new GridData();
@@ -246,6 +254,8 @@ public class DependencyDialog extends MetadataInputDialog {
 				specificationText.setText(dependency.getSpecification());
 			
 			optionalButton.setSelection(dependency.isOptional());
+			setDependencyTypeLabels();
+			
 			
 		} else {
 			dependency = FelixFactory.eINSTANCE.createRequiresType();
@@ -415,6 +425,16 @@ public class DependencyDialog extends MetadataInputDialog {
 	private void enableMethodsWidgets(boolean enable) {
 		bindText.setEnabled(enable);
 		unbindText.setEnabled(enable);			
+	}
+	
+	private void setDependencyTypeLabels() {
+		if (optionalButton.getSelection()) {
+			singleButton.setText("Scalar (0..1)");
+			multipleButton.setText("Multiple (0..n)");					
+		} else {
+			singleButton.setText("Scalar (1..1)");
+			multipleButton.setText("Multiple (1..n)");
+		}
 	}
 
 }

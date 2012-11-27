@@ -17,6 +17,7 @@ package org.ow2.chameleon.eclipse.ipojo.core;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Set;
 import java.util.jar.Manifest;
 
 import org.apache.felix.ipojo.manipulator.ResourceStore;
@@ -343,8 +344,13 @@ public class EclipseResourceStore implements ResourceStore {
 	public void writeMetadata(final Element aMetadata) {
 
 		pManifestBuilder.addMetada(Collections.singletonList(aMetadata));
-		pManifestBuilder.addReferredPackage(Metadatas
-				.findReferredPackages(aMetadata));
+		
+		Set<String> referencePackages = Metadatas.findReferredPackages(aMetadata);
+		
+		pManifestBuilder.addReferredPackage(referencePackages);
+		
+		// TODO: Review this workaround 
+		((SortedManifestBuilder)pManifestBuilder).addPackageToExport(referencePackages);
 
 		pNbStoredMetadata++;
 	}

@@ -103,7 +103,6 @@ public class PropertyDialog extends MetadataInputDialog {
 
 			@Override
 			public void modifyText(ModifyEvent e) {
-				System.out.println("Listener was executed");
 				fieldText.setText(nameText.getText());
 			}
 		});

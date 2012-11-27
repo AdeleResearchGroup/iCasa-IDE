@@ -22,6 +22,7 @@ import org.apache.felix.impl.ComponentTypeImpl;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.emf.common.command.Command;
 import org.eclipse.emf.edit.domain.EditingDomain;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -166,6 +167,9 @@ public class ComponentMasterDetailBlock extends PojoMasterDetailBlock {
 
 				// Updates GUI elements with changes
 				componentsViewer.setSelection(selection);
+				
+				//Save the editor state
+				editor.doSave(new NullProgressMonitor());
 			}
 		}
 	}

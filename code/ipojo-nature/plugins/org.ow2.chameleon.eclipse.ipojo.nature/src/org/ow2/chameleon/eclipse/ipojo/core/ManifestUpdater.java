@@ -245,6 +245,9 @@ public class ManifestUpdater {
 		final Pojoization pojoization = new Pojoization(reporter);
 		pojoization.pojoization(resourceStore, metadataProvider,
 				manipulationVisitor);
+		
+		
+		
 
 		// Update progress monitor
 		if (aMonitor != null) {

@@ -1,7 +1,5 @@
 package liglab.imag.fr.metadata.ui.editor.preferences;
 
-import java.io.File;
-
 import liglab.imag.fr.metadata.editor.ComponentEditorPlugin;
 
 import org.eclipse.core.runtime.CoreException;
@@ -15,7 +13,6 @@ import org.eclipse.pde.core.target.ITargetHandle;
 import org.eclipse.pde.core.target.ITargetLocation;
 import org.eclipse.pde.core.target.ITargetPlatformService;
 import org.eclipse.pde.core.target.LoadTargetDefinitionJob;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
@@ -65,7 +62,11 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage implement
 	public boolean performOk() {
 		boolean ok = super.performOk();
 		if (directoryModified) {
-			configureTargetPlaform(deploymentDirectoryFieldEditor.getStringValue());
+			String newDirectory = deploymentDirectoryFieldEditor.getStringValue().trim();
+			if (!newDirectory.isEmpty())
+				configureTargetPlaform(deploymentDirectoryFieldEditor.getStringValue());
+			else 
+				removeTargetPlatform();
 			directoryModified = false;
 		}
 
@@ -135,10 +136,29 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage implement
 				LoadTargetDefinitionJob.load(targetDefinition);
 			}
 			service.saveTargetDefinition(targetDefinition);
+			
+			
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
 	}
+	
+	private void removeTargetPlatform() {
+		ITargetPlatformService service = getTargetService();
+
+		if (service == null)
+			return;
+
+		ITargetDefinition targetDefinition = getTargetDefinition(TARGET_PLATFORM_NAME, service);
+		try {
+			if (targetDefinition != null) {
+				service.deleteTarget(targetDefinition.getHandle());				
+			}
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+	}
+	
 
 	/**
 	 * Find a target platform definition by name
