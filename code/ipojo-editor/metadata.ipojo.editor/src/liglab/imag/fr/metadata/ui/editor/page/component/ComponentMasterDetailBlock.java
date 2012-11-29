@@ -274,7 +274,7 @@ public class ComponentMasterDetailBlock extends PojoMasterDetailBlock {
 			parser.setResolveBindings(true); // we need bindings later
 			                                 // on
 			CompilationUnit unit = (CompilationUnit) parser.createAST(null /* IProgressMonitor */); // parse
-			ComponentValidatorVisitor visitor = new ComponentValidatorVisitor(classModel);
+			ComponentValidatorVisitor visitor = new ComponentValidatorVisitor(classModel);					
 			return visitor.process(unit);
 		}
 		return null;

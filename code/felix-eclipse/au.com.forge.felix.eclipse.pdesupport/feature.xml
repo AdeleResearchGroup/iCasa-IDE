@@ -2,7 +2,7 @@
 <feature
       id="au.com.forge.apache.felix.pdesupport"
       label="Apache Felix PDE Support for Eclipse"
-      version="0.1.6"
+      version="0.1.6.qualifier"
       provider-name="Forge Research (http://www.forge.com.au)">
 
    <description url="http://code.google.com/p/felix-eclipse/">

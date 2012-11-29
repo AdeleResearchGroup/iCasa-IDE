@@ -15,9 +15,21 @@ import org.apache.felix.PropertiesType;
 import org.apache.felix.PropertyType;
 import org.apache.felix.ProvidesType;
 import org.apache.felix.RequiresType;
+import org.eclipse.core.filebuffers.FileBuffers;
+import org.eclipse.core.filebuffers.ITextFileBuffer;
+import org.eclipse.core.filebuffers.ITextFileBufferManager;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.text.edits.MalformedTreeException;
+import org.eclipse.text.edits.TextEdit;
 
 public class ImplementationClassModel {
 
@@ -25,30 +37,33 @@ public class ImplementationClassModel {
 	 * The component type asociated to the class model
 	 */
 	private ComponentType componentType;
-	
+
 	private Map<String, PropertyType> propertiesFields;
-	
+
 	private Map<String, PropertyType> servicePropertiesFields;
-	
+
 	private Map<String, RequiresType> dependencyFields;
-	
+
 	private Map<String, RequiresType> dependencyMethods;
-	
+
 	private Map<String, CallbackType> lifecycleMethods;
-	
+
+	/**
+	 * Store the compilation unit only to add interfaces
+	 */
+	private CompilationUnit compilationUnit = null;
+
 	private static String METHOD_BODY = "){\n// TODO: Add your implementation code here\n}\n";
 
-
-
 	public ImplementationClassModel(ComponentType componentType) {
-	   this.componentType = componentType;
+		this.componentType = componentType;
 		calculateDependenciesFields();
 		calculateDependenciesMethods();
 		calculatePropertiesFields();
 		calculateLifecycleMethods();
 		calculateServicePropertiesFields();
-   }
-		
+	}
+
 	private void calculateDependenciesFields() {
 		dependencyFields = new HashMap<String, RequiresType>();
 
@@ -73,7 +88,7 @@ public class ImplementationClassModel {
 			}
 		}
 	}
-	
+
 	private void calculateServicePropertiesFields() {
 		servicePropertiesFields = new HashMap<String, PropertyType>();
 
@@ -82,12 +97,12 @@ public class ImplementationClassModel {
 			List<PropertyType> properties = specification.getProperty();
 			for (PropertyType property : properties) {
 				String field = property.getField();
-				if (field!=null)
+				if (field != null)
 					servicePropertiesFields.put(field, property);
 			}
-      }
+		}
 	}
-	
+
 	private void calculateDependenciesMethods() {
 		dependencyMethods = new HashMap<String, RequiresType>();
 		List<RequiresType> requires = componentType.getRequires();
@@ -101,10 +116,10 @@ public class ImplementationClassModel {
 			}
 		}
 	}
-	
+
 	private void calculateLifecycleMethods() {
 		lifecycleMethods = new HashMap<String, CallbackType>();
-		
+
 		CallbackType validateCallbackType = ModelUtil.getValidateCallback(componentType);
 		CallbackType invalidateCallbackType = ModelUtil.getInvalidateCallback(componentType);
 		if (validateCallbackType != null) {
@@ -114,14 +129,14 @@ public class ImplementationClassModel {
 			lifecycleMethods.put(invalidateCallbackType.getMethod(), invalidateCallbackType);
 		}
 	}
-	
+
 	public List<String> getErrorMessages() {
 		List<String> errors = new ArrayList<String>();
 
 		for (String propertiesField : propertiesFields.keySet()) {
 			String propertyName = propertiesFields.get(propertiesField).getName();
-			errors.add("Implementation class has to define the field " + propertiesField
-			      + " associated to property " + propertyName);
+			errors.add("Implementation class has to define the field " + propertiesField + " associated to property "
+			      + propertyName);
 		}
 
 		for (String propertiesField : servicePropertiesFields.keySet()) {
@@ -129,11 +144,11 @@ public class ImplementationClassModel {
 			errors.add("Implementation class has to define the field " + propertiesField
 			      + " associated to service property " + propertyName);
 		}
-		
+
 		for (String dependenciesField : dependencyFields.keySet()) {
 			String dependencyName = dependencyFields.get(dependenciesField).getField();
-			errors.add("Implementation class has to define the field " + dependenciesField
-			      + " associated to dependency " + dependencyName);
+			errors.add("Implementation class has to define the field " + dependenciesField + " associated to dependency "
+			      + dependencyName);
 		}
 
 		for (String dependenciesMethod : dependencyMethods.keySet()) {
@@ -142,22 +157,20 @@ public class ImplementationClassModel {
 			      + " associated to dependency " + dependencyName);
 		}
 
-		for (String lifecycleMethod : lifecycleMethods.keySet()) {			
+		for (String lifecycleMethod : lifecycleMethods.keySet()) {
 			errors.add("Implementation class has to define the method " + lifecycleMethod
 			      + " associated to the component lifecycle ");
 		}
 
-		
 		return errors;
 	}
-	
-	
+
 	public void removeField(String field) {
 		propertiesFields.remove(field);
 		dependencyFields.remove(field);
 		servicePropertiesFields.remove(field);
 	}
-	
+
 	public void removeMethod(String method) {
 		dependencyMethods.remove(method);
 		lifecycleMethods.remove(method);
@@ -185,7 +198,7 @@ public class ImplementationClassModel {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void generateFieldDependecyCode(IType implClass, RequiresType dependency) {
 		String field = dependency.getField();
 		String specification = dependency.getSpecification();
@@ -205,7 +218,7 @@ public class ImplementationClassModel {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void generateBindMethodDependecyCode(IType implClass, RequiresType require) {
 		StringBuffer code = new StringBuffer();
 		String id = require.getId();
@@ -254,8 +267,8 @@ public class ImplementationClassModel {
 		} catch (JavaModelException e) {
 			e.printStackTrace();
 		}
-	}	
-	
+	}
+
 	private void generateLifecycleMethodCode(IType implClass, CallbackType callback) {
 		StringBuffer code = new StringBuffer();
 		code.append("/** Component Lifecycle Method */\n");
@@ -276,41 +289,95 @@ public class ImplementationClassModel {
 			return;
 		implClass.getCompilationUnit().createImport(classToImport, implClass, null);
 	}
-	
-		
+
 	public void completeImplementationClass(IType implClass) {
 		// Generation of dependencies based on fields
 		for (RequiresType dependency : dependencyFields.values()) {
-	      generateFieldDependecyCode(implClass, dependency);
-      }	
-		
+			generateFieldDependecyCode(implClass, dependency);
+		}
+
 		// Generation of dependencies based on methods
 		Set<RequiresType> dependencies = new HashSet<RequiresType>(dependencyMethods.values());
 		for (RequiresType dependency : dependencies) {
-	      generateBindMethodDependecyCode(implClass, dependency);
-	      generateUnbindMethodDependecyCode(implClass, dependency);
-      }		
+			generateBindMethodDependecyCode(implClass, dependency);
+			generateUnbindMethodDependecyCode(implClass, dependency);
+		}
 		// Generation of component configuration properties
 		for (PropertyType property : propertiesFields.values()) {
-	      generatePropertyCode(implClass, property, true);
-      }
+			generatePropertyCode(implClass, property, true);
+		}
 		// Generation of service properties
 		for (PropertyType property : servicePropertiesFields.values()) {
-	      generatePropertyCode(implClass, property, false);
-      }
-		
+			generatePropertyCode(implClass, property, false);
+		}
+
 		// Generation of lifecycle methods
 		for (CallbackType callback : lifecycleMethods.values()) {
-	      generateLifecycleMethodCode(implClass, callback);
-      }
+			generateLifecycleMethodCode(implClass, callback);
+		}
+
+		try {
+			ICompilationUnit tempCompilationUnit = implClass.getCompilationUnit();
+			JDTUtil.formatCompilationUnit(tempCompilationUnit);
+			//tempCompilationUnit.save(null, true);
+		} catch (JavaModelException e) {
+			e.printStackTrace();
+		}
+
+		/*
+		 * if (compilationUnit!=null) { addInterface("my.Interface");
+		 * saveCompilationUnit(); }
+		 */
+
+	}
+
+	public void setCompilationUnit(CompilationUnit unit) {
+		this.compilationUnit = unit;
+	}
+
+	private void addInterface(String name) {
+		AST ast = compilationUnit.getAST();
+		compilationUnit.recordModifications();
+		TypeDeclaration td = (TypeDeclaration) compilationUnit.types().get(0);
+		td.superInterfaceTypes().add(ast.newSimpleType(ast.newName(name)));
+	}
+
+	private void saveCompilationUnit() {
+		ITextFileBufferManager bufferManager = FileBuffers.getTextFileBufferManager(); // get the buffer manager 
+		IPath path = compilationUnit.getJavaElement().getPath(); // unit: instance of CompilationUnit
 		
 		try {
-			ICompilationUnit compilationUnit = implClass.getCompilationUnit();
-	      JDTUtil.formatCompilationUnit(compilationUnit);
-			compilationUnit.save(null, true);
-      } catch (JavaModelException e) {
-	      e.printStackTrace();
-      }
+			bufferManager.connect(path, null); // (1)
+			ITextFileBuffer textFileBuffer = bufferManager.getTextFileBuffer(path);
+			// retrieve the buffer
+			IDocument document = textFileBuffer.getDocument(); // (2)
+			// ... edit the document here ...
+
+			// ask the textEditProvider for the change information
+			TextEdit edit = compilationUnit.rewrite(document, null);
+
+			// apply the changes to the document
+			edit.apply(document);
+
+			// commit changes to underlying file
+			textFileBuffer.commit(null /* ProgressMonitor */, false /* Overwrite */); // (3)
+
+		} catch (CoreException e) {
+			e.printStackTrace();
+		} catch (MalformedTreeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (BadLocationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				bufferManager.disconnect(path, null);
+			} catch (CoreException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
-	
+
 }

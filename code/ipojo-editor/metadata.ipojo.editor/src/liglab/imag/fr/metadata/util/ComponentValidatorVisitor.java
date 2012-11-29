@@ -46,6 +46,7 @@ public class ComponentValidatorVisitor extends ASTVisitor {
 	 */
 	public ImplementationClassModel process(CompilationUnit unit) {
 		unit.accept(this);	
+		classModel.setCompilationUnit(unit);
 		return classModel;
 	}
 

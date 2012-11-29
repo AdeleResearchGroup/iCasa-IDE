@@ -345,12 +345,12 @@ public class EclipseResourceStore implements ResourceStore {
 
 		pManifestBuilder.addMetada(Collections.singletonList(aMetadata));
 		
-		Set<String> referencePackages = Metadatas.findReferredPackages(aMetadata);
+		//Set<String> referencePackages = Metadatas.findReferredPackages(aMetadata);
 		
-		pManifestBuilder.addReferredPackage(referencePackages);
+		//pManifestBuilder.addReferredPackage(referencePackages);
 		
 		// TODO: Review this workaround 
-		((SortedManifestBuilder)pManifestBuilder).addPackageToExport(referencePackages);
+		//((SortedManifestBuilder)pManifestBuilder).addPackageToExport(referencePackages);
 
 		pNbStoredMetadata++;
 	}

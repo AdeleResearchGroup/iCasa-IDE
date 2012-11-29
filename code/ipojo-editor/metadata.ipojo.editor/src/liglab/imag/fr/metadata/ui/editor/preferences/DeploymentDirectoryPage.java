@@ -43,6 +43,8 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage implement
 	public void createFieldEditors() {
 		deploymentDirectoryFieldEditor = new DirectoryFieldEditor(ComponentEditorPlugin.DIRECTORY_PREFERENCE,
 		      "&OSGi (iPojo) installation directory:", getFieldEditorParent());
+		
+		deploymentDirectoryFieldEditor.getTextControl(getFieldEditorParent()).setEditable(false);
 
 		addField(deploymentDirectoryFieldEditor);
 		addField(new BooleanFieldEditor(ComponentEditorPlugin.ICASA_IMPORT_PREFERENCE,

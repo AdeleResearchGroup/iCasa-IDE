@@ -9,7 +9,7 @@
    <feature url="features/org.ow2.chameleon.eclipse.ipojo.nature.feature_1.0.1.qualifier.jar" id="org.ow2.chameleon.eclipse.ipojo.nature.feature" version="1.0.1.qualifier">
       <category name="iPOJO Nature and Builder"/>
    </feature>
-   <feature url="features/au.com.forge.apache.felix.pdesupport_0.1.6.jar" id="au.com.forge.apache.felix.pdesupport" version="0.1.6">
+   <feature url="features/au.com.forge.apache.felix.pdesupport_0.1.6.qualifier.jar" id="au.com.forge.apache.felix.pdesupport" version="0.1.6.qualifier">
       <category name="Felix Execution on Eclipse"/>
    </feature>
    <category-def name="iPOJO Specification Tools" label="iPOJO Specification Tools"/>
