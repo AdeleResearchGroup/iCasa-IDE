@@ -56,6 +56,12 @@
             class="org.ow2.chameleon.eclipse.ipojo.builder.IPojoNature">
       </run>
    </runtime>
+   <requires-nature
+         id="org.eclipse.jdt.core.javanature">
+   </requires-nature>
+   <requires-nature
+         id="org.eclipse.pde.PluginNature">
+   </requires-nature>
    <!--
    <builder
          id="org.ow2.chameleon.eclipse.ipojo.ipojoBuilder">
