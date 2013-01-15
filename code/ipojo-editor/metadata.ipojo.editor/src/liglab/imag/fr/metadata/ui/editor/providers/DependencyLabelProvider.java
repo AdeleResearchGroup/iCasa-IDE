@@ -29,12 +29,9 @@ public class DependencyLabelProvider extends ColumnLabelProvider {
 		if (element instanceof RequiresType) {
 			RequiresType dependency = (RequiresType) element;
 
-			if (attribute == NAME) {
-				if (ModelUtil.isFieldDependency(dependency))
-					return dependency.getField();
-				else
-					return dependency.getId();
-			}
+			if (attribute == NAME)
+				return dependency.getField();
+			
 
 			if (attribute == CARDINALITY) {
 				if (ModelUtil.isFieldDependency(dependency))
@@ -50,7 +47,7 @@ public class DependencyLabelProvider extends ColumnLabelProvider {
 
 			if (attribute == TYPE) {
 				String specification = dependency.getSpecification();
-				if (specification!=null && !specification.isEmpty())
+				if (specification != null && !specification.isEmpty())
 					return specification;
 				return "Unknown";
 			}

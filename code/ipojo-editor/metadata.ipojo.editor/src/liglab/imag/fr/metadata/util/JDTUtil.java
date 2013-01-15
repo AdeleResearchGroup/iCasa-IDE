@@ -247,6 +247,13 @@ public class JDTUtil {
 		return className;
 	}
 
+	
+	public static String firstCharacterToLowerCase(String text) {
+		char c[] = text.toCharArray();
+		 c[0] = Character.toLowerCase(c[0]);
+		 return new String(c);
+	}
+	
 	/**
 	 * Gets the package name
 	 * 

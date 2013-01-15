@@ -69,10 +69,9 @@ public class ImplementationClassModel {
 
 		List<RequiresType> requires = componentType.getRequires();
 		for (RequiresType dependency : requires) {
-			if (ModelUtil.isFieldDependency(dependency)) {
-				String field = dependency.getField();
+			String field = dependency.getField();
+			if (field != null)
 				dependencyFields.put(field, dependency);
-			}
 		}
 	}
 
@@ -199,7 +198,7 @@ public class ImplementationClassModel {
 		}
 	}
 
-	private void generateFieldDependecyCode(IType implClass, RequiresType dependency) {
+	private void generateFieldScalarDependecyCode(IType implClass, RequiresType dependency) {
 		String field = dependency.getField();
 		String specification = dependency.getSpecification();
 		StringBuffer code = new StringBuffer();
@@ -219,20 +218,42 @@ public class ImplementationClassModel {
 		}
 	}
 
+	private void generateFieldMultipleDependecyCode(IType implClass, RequiresType dependency) {
+		String field = dependency.getField();
+			String specification = dependency.getSpecification();
+			StringBuffer code = new StringBuffer();
+			code.append("/** Field for " + field + " dependency */\n");
+			if (specification != null && !specification.isEmpty())
+				code.append("private " + JDTUtil.getJavaClassName(specification) + "[] ");
+			else
+				code.append("private Object ");
+			code.append(field);
+			code.append(";\n\n");
+			try {
+				implClass.createField(code.toString(), null, true, null);
+				if (specification != null && !specification.isEmpty())
+					createImport(implClass, specification);
+			} catch (JavaModelException e) {
+				e.printStackTrace();
+			}
+
+	}
+
 	private void generateBindMethodDependecyCode(IType implClass, RequiresType require) {
 		StringBuffer code = new StringBuffer();
 		String id = require.getId();
 		String bindMethod = ModelUtil.getBindCallback(require).getMethod();
 		String specification = require.getSpecification();
+		String className = JDTUtil.getJavaClassName(specification);
 
 		code.append("/** Bind Method for " + id + " dependency */\n");
 		code.append("public void ");
 		code.append(bindMethod);
 		if (specification != null && !specification.isEmpty())
-			code.append("(" + JDTUtil.getJavaClassName(specification) + " ");
+			code.append("(" + className + " ");
 		else
 			code.append("(Object ");
-		code.append(id);
+		code.append(JDTUtil.firstCharacterToLowerCase(className));
 		code.append(METHOD_BODY);
 
 		try {
@@ -249,15 +270,16 @@ public class ImplementationClassModel {
 		String id = require.getId();
 		String unbindMethod = ModelUtil.getUnbindCallback(require).getMethod();
 		String specification = require.getSpecification();
+		String className = JDTUtil.getJavaClassName(specification);
 
 		code.append("/** Unbind Method for " + id + " dependency */\n");
 		code.append("public void ");
 		code.append(unbindMethod);
 		if (specification != null && !specification.isEmpty())
-			code.append("(" + JDTUtil.getJavaClassName(specification) + " ");
+			code.append("(" + className + " ");
 		else
 			code.append("(Object ");
-		code.append(id);
+		code.append(JDTUtil.firstCharacterToLowerCase(className));
 		code.append(METHOD_BODY);
 
 		try {
@@ -291,9 +313,13 @@ public class ImplementationClassModel {
 	}
 
 	public void completeImplementationClass(IType implClass) {
+
 		// Generation of dependencies based on fields
 		for (RequiresType dependency : dependencyFields.values()) {
-			generateFieldDependecyCode(implClass, dependency);
+			if (ModelUtil.isFieldDependency(dependency))
+				generateFieldScalarDependecyCode(implClass, dependency);
+			else
+				generateFieldMultipleDependecyCode(implClass, dependency);
 		}
 
 		// Generation of dependencies based on methods
@@ -302,13 +328,16 @@ public class ImplementationClassModel {
 			generateBindMethodDependecyCode(implClass, dependency);
 			generateUnbindMethodDependecyCode(implClass, dependency);
 		}
+
 		// Generation of component configuration properties
 		for (PropertyType property : propertiesFields.values()) {
 			generatePropertyCode(implClass, property, true);
 		}
+
 		// Generation of service properties
 		for (PropertyType property : servicePropertiesFields.values()) {
-			generatePropertyCode(implClass, property, false);
+			if (!propertiesFields.containsKey(property.getField()))
+				generatePropertyCode(implClass, property, false);
 		}
 
 		// Generation of lifecycle methods
@@ -319,7 +348,7 @@ public class ImplementationClassModel {
 		try {
 			ICompilationUnit tempCompilationUnit = implClass.getCompilationUnit();
 			JDTUtil.formatCompilationUnit(tempCompilationUnit);
-			//tempCompilationUnit.save(null, true);
+			// tempCompilationUnit.save(null, true);
 		} catch (JavaModelException e) {
 			e.printStackTrace();
 		}
@@ -343,9 +372,14 @@ public class ImplementationClassModel {
 	}
 
 	private void saveCompilationUnit() {
-		ITextFileBufferManager bufferManager = FileBuffers.getTextFileBufferManager(); // get the buffer manager 
-		IPath path = compilationUnit.getJavaElement().getPath(); // unit: instance of CompilationUnit
-		
+		ITextFileBufferManager bufferManager = FileBuffers.getTextFileBufferManager(); // get
+																												 // the
+																												 // buffer
+																												 // manager
+		IPath path = compilationUnit.getJavaElement().getPath(); // unit: instance
+																					// of
+																					// CompilationUnit
+
 		try {
 			bufferManager.connect(path, null); // (1)
 			ITextFileBuffer textFileBuffer = bufferManager.getTextFileBuffer(path);
