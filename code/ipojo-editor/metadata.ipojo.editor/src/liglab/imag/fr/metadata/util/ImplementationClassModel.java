@@ -53,7 +53,7 @@ public class ImplementationClassModel {
 	 */
 	private CompilationUnit compilationUnit = null;
 
-	private static String METHOD_BODY = "){\n// TODO: Add your implementation code here\n}\n";
+	private static String METHOD_BODY = "{\n// TODO: Add your implementation code here\n}\n";
 
 	public ImplementationClassModel(ComponentType componentType) {
 		this.componentType = componentType;
@@ -220,66 +220,52 @@ public class ImplementationClassModel {
 
 	private void generateFieldMultipleDependecyCode(IType implClass, RequiresType dependency) {
 		String field = dependency.getField();
-			String specification = dependency.getSpecification();
-			StringBuffer code = new StringBuffer();
-			code.append("/** Field for " + field + " dependency */\n");
-			if (specification != null && !specification.isEmpty())
-				code.append("private " + JDTUtil.getJavaClassName(specification) + "[] ");
-			else
-				code.append("private Object ");
-			code.append(field);
-			code.append(";\n\n");
-			try {
-				implClass.createField(code.toString(), null, true, null);
-				if (specification != null && !specification.isEmpty())
-					createImport(implClass, specification);
-			} catch (JavaModelException e) {
-				e.printStackTrace();
-			}
-
-	}
-
-	private void generateBindMethodDependecyCode(IType implClass, RequiresType require) {
+		String specification = dependency.getSpecification();
 		StringBuffer code = new StringBuffer();
-		String id = require.getId();
-		String bindMethod = ModelUtil.getBindCallback(require).getMethod();
-		String specification = require.getSpecification();
-		String className = JDTUtil.getJavaClassName(specification);
-
-		code.append("/** Bind Method for " + id + " dependency */\n");
-		code.append("public void ");
-		code.append(bindMethod);
+		code.append("/** Field for " + field + " dependency */\n");
 		if (specification != null && !specification.isEmpty())
-			code.append("(" + className + " ");
+			code.append("private " + JDTUtil.getJavaClassName(specification) + "[] ");
 		else
-			code.append("(Object ");
-		code.append(JDTUtil.firstCharacterToLowerCase(className));
-		code.append(METHOD_BODY);
-
+			code.append("private Object ");
+		code.append(field);
+		code.append(";\n\n");
 		try {
-			implClass.createMethod(code.toString(), null, true, null);
+			implClass.createField(code.toString(), null, true, null);
 			if (specification != null && !specification.isEmpty())
 				createImport(implClass, specification);
 		} catch (JavaModelException e) {
 			e.printStackTrace();
 		}
+
 	}
 
-	private void generateUnbindMethodDependecyCode(IType implClass, RequiresType require) {
+	private void generateDependencyMethod(IType implClass, RequiresType dependency, boolean bind) {
 		StringBuffer code = new StringBuffer();
-		String id = require.getId();
-		String unbindMethod = ModelUtil.getUnbindCallback(require).getMethod();
-		String specification = require.getSpecification();
+		String id = dependency.getId();
+		String specification = dependency.getSpecification();
 		String className = JDTUtil.getJavaClassName(specification);
 
-		code.append("/** Unbind Method for " + id + " dependency */\n");
+		if (id == null)
+			id = dependency.getField();
+
+		String dependencyMethod = "";
+
+		if (bind) {
+			dependencyMethod = ModelUtil.getBindCallback(dependency).getMethod();
+			code.append("/** Bind Method for " + id + " dependency */\n");
+		} else {
+			dependencyMethod = ModelUtil.getUnbindCallback(dependency).getMethod();
+			code.append("/** Unbind Method for " + id + " dependency */\n");
+		}
+
 		code.append("public void ");
-		code.append(unbindMethod);
+		code.append(dependencyMethod);
 		if (specification != null && !specification.isEmpty())
 			code.append("(" + className + " ");
 		else
 			code.append("(Object ");
 		code.append(JDTUtil.firstCharacterToLowerCase(className));
+		code.append(", Map properties)");
 		code.append(METHOD_BODY);
 
 		try {
@@ -295,7 +281,7 @@ public class ImplementationClassModel {
 		StringBuffer code = new StringBuffer();
 		code.append("/** Component Lifecycle Method */\n");
 		code.append("public void ");
-		code.append(callback.getMethod() + "(");
+		code.append(callback.getMethod() + "()");
 		code.append(METHOD_BODY);
 
 		try {
@@ -325,9 +311,17 @@ public class ImplementationClassModel {
 		// Generation of dependencies based on methods
 		Set<RequiresType> dependencies = new HashSet<RequiresType>(dependencyMethods.values());
 		for (RequiresType dependency : dependencies) {
-			generateBindMethodDependecyCode(implClass, dependency);
-			generateUnbindMethodDependecyCode(implClass, dependency);
+			generateDependencyMethod(implClass, dependency, true);
+			generateDependencyMethod(implClass, dependency, false);
 		}
+
+		if (!dependencies.isEmpty())
+			try {
+				createImport(implClass, "java.util.Map"); // Creates Map import
+			} catch (JavaModelException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 
 		// Generation of component configuration properties
 		for (PropertyType property : propertiesFields.values()) {
@@ -346,6 +340,8 @@ public class ImplementationClassModel {
 		}
 
 		try {
+
+			// Formating the compilation unit
 			ICompilationUnit tempCompilationUnit = implClass.getCompilationUnit();
 			JDTUtil.formatCompilationUnit(tempCompilationUnit);
 			// tempCompilationUnit.save(null, true);
@@ -373,12 +369,12 @@ public class ImplementationClassModel {
 
 	private void saveCompilationUnit() {
 		ITextFileBufferManager bufferManager = FileBuffers.getTextFileBufferManager(); // get
-																												 // the
-																												 // buffer
-																												 // manager
+		                                                                               // the
+		                                                                               // buffer
+		                                                                               // manager
 		IPath path = compilationUnit.getJavaElement().getPath(); // unit: instance
-																					// of
-																					// CompilationUnit
+		                                                         // of
+		                                                         // CompilationUnit
 
 		try {
 			bufferManager.connect(path, null); // (1)

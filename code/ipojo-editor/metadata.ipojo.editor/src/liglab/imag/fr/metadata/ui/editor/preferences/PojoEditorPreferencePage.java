@@ -1,12 +1,19 @@
 package liglab.imag.fr.metadata.ui.editor.preferences;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Properties;
+
 import liglab.imag.fr.metadata.editor.ComponentEditorPlugin;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.DirectoryFieldEditor;
 import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
+import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.pde.core.target.ITargetDefinition;
 import org.eclipse.pde.core.target.ITargetHandle;
@@ -21,18 +28,23 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
  * @author Gabriel Pedraza Ferreira
  * 
  */
-public class DeploymentDirectoryPage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
+public class PojoEditorPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 
 	private DirectoryFieldEditor deploymentDirectoryFieldEditor;
 
-	private boolean directoryModified = false;
+	private StringFieldEditor applicationDirectory;
+
+	/**
+	 * Flag to determine if the platform directory has been changed
+	 */
+	private boolean platformDirectoryModified = false;
 
 	private static final String TARGET_PLATFORM_NAME = "iPojo-RT";
 
-	public DeploymentDirectoryPage() {
+	public PojoEditorPreferencePage() {
 		super(GRID);
 		setPreferenceStore(ComponentEditorPlugin.getDefault().getPreferenceStore());
-		setDescription("Deployment Directory Page");
+		setDescription("iCasa (iPojo) Editor Preferences");
 	}
 
 	/**
@@ -41,14 +53,19 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage implement
 	 * editor knows how to save and restore itself.
 	 */
 	public void createFieldEditors() {
-		deploymentDirectoryFieldEditor = new DirectoryFieldEditor(ComponentEditorPlugin.DIRECTORY_PREFERENCE,
+		deploymentDirectoryFieldEditor = new DirectoryFieldEditor(ComponentEditorPlugin.TARGET_DIRECTORY_PREFERENCE,
 		      "&OSGi (iPojo) installation directory:", getFieldEditorParent());
-		
-		deploymentDirectoryFieldEditor.getTextControl(getFieldEditorParent()).setEditable(false);
 
+		deploymentDirectoryFieldEditor.getTextControl(getFieldEditorParent()).setEditable(false);
 		addField(deploymentDirectoryFieldEditor);
+
+		applicationDirectory = new StringFieldEditor(ComponentEditorPlugin.APPS_DIRECTORY_PREFERENCE,
+		      "Applications directory", getFieldEditorParent());
+		addField(applicationDirectory);
+
 		addField(new BooleanFieldEditor(ComponentEditorPlugin.ICASA_IMPORT_PREFERENCE,
 		      "&Add iCasa packages to new iPojo Projects ", getFieldEditorParent()));
+
 	}
 
 	/*
@@ -63,52 +80,76 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage implement
 	@Override
 	public boolean performOk() {
 		boolean ok = super.performOk();
-		if (directoryModified) {
+		if (platformDirectoryModified) {
 			String newDirectory = deploymentDirectoryFieldEditor.getStringValue().trim();
 			if (!newDirectory.isEmpty())
 				configureTargetPlaform(deploymentDirectoryFieldEditor.getStringValue());
-			else 
+			else
 				removeTargetPlatform();
-			directoryModified = false;
+			platformDirectoryModified = false;
 		}
 
+		verifyExecutionConfiguration();
 		return ok;
 	}
 
-
-	/*
-	@Override
-	protected void checkState() {
-	   super.checkState();
-	   if (!isValid())
-	   	return;
-
-      String fileName = deploymentDirectoryFieldEditor.getStringValue();
-      fileName = fileName.trim();
-      File file = new File(fileName);
-      boolean isOk = file.isDirectory() && file.exists();
-      setValid(isOk);
-      if (!isOk) {
-      	setErrorMessage("Must have a valid directory");
-      }      	  
-	}
-	
-	*/
-
-
-	
-	
 	@Override
 	public void propertyChange(PropertyChangeEvent event) {
 		super.propertyChange(event);
 		FieldEditor emmiter = (FieldEditor) event.getSource();
 
-		if (deploymentDirectoryFieldEditor == emmiter) 
-			directoryModified = true;
+		if (deploymentDirectoryFieldEditor == emmiter)
+			platformDirectoryModified = true;
 	}
 
 	
-		
+	private void verifyExecutionConfiguration() {
+		Properties prop = new Properties();
+
+		String platformDirectory = deploymentDirectoryFieldEditor.getStringValue().trim();
+		String fileSeparator = System.getProperty("file.separator");
+		String configFilePath = platformDirectory + fileSeparator + "conf" + fileSeparator + "config.properties";
+		try {
+
+			// load a properties file
+			prop.load(new FileInputStream(configFilePath));
+						
+			String fileInstallDirProperty = (String) prop.get("felix.fileinstall.dir");
+			boolean existingDir = false;
+			String applicationDirectoryEntry = "./" + applicationDirectory.getStringValue().trim();
+			
+			if (fileInstallDirProperty!=null) {
+				String[] dirs = fileInstallDirProperty.split(",");
+				
+				for (String dir : dirs) {
+					if (dir.equals(applicationDirectoryEntry)) {
+						existingDir = true;
+						break;
+					}
+				}
+			} 
+
+			if (!existingDir) {
+				MessageDialog
+				      .openInformation(null, "ICasa Configuration",
+				            "The applications directory has not been found in configuration of the execution platform. The iCasa IDE will try to modify it");
+				
+				if (fileInstallDirProperty==null)
+					fileInstallDirProperty = applicationDirectoryEntry;
+				else
+					fileInstallDirProperty = fileInstallDirProperty + "," + applicationDirectoryEntry;
+					
+				
+				prop.setProperty("felix.fileinstall.dir", fileInstallDirProperty);
+				prop.store(new FileOutputStream(configFilePath), null);
+			}
+
+
+
+		} catch (IOException ex) {
+			MessageDialog.openWarning(null, "ICasa Configuration", "ICasa IDE could not open the execution platform configuration file");
+		}
+	}
 
 	/**
 	 * Configures a new Felix-iPojo target platform
@@ -138,13 +179,12 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage implement
 				LoadTargetDefinitionJob.load(targetDefinition);
 			}
 			service.saveTargetDefinition(targetDefinition);
-			
-			
+
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void removeTargetPlatform() {
 		ITargetPlatformService service = getTargetService();
 
@@ -154,13 +194,12 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage implement
 		ITargetDefinition targetDefinition = getTargetDefinition(TARGET_PLATFORM_NAME, service);
 		try {
 			if (targetDefinition != null) {
-				service.deleteTarget(targetDefinition.getHandle());				
+				service.deleteTarget(targetDefinition.getHandle());
 			}
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
 	}
-	
 
 	/**
 	 * Find a target platform definition by name
@@ -208,7 +247,6 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage implement
 		targetDefinition.setTargetLocations(containers);
 		return targetDefinition;
 	}
-	
 
 	/**
 	 * 
@@ -219,23 +257,17 @@ public class DeploymentDirectoryPage extends FieldEditorPreferencePage implement
 		      ITargetPlatformService.class.getName());
 	}
 
-
-	
 	/*
-	class MyDirectoryFieldEditor extends DirectoryFieldEditor {
-		
-		public MyDirectoryFieldEditor(String name, String labelText, Composite parent) {
-			super(name, labelText, parent);
-		}
-		
-		@Override
-		protected boolean doCheckState() {
-		   boolean ok = super.doCheckState();
-		   System.out.println("doCheckState " + ok);
-		   return ok;
-		}
-		
-	}
-	*/
-	
+	 * class MyDirectoryFieldEditor extends DirectoryFieldEditor {
+	 * 
+	 * public MyDirectoryFieldEditor(String name, String labelText, Composite
+	 * parent) { super(name, labelText, parent); }
+	 * 
+	 * @Override protected boolean doCheckState() { boolean ok =
+	 * super.doCheckState(); System.out.println("doCheckState " + ok); return ok;
+	 * }
+	 * 
+	 * }
+	 */
+
 }

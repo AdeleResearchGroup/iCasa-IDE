@@ -50,6 +50,23 @@ public class CommandFactory {
 		return AddCommand.create(editingDomain, owner, feature, instance);
 	}
 	
+
+	/**
+	 * Sets the component name of the specified instance
+	 * @param editingDomain
+	 * @param instance
+	 * @param newComponentName
+	 * @return
+	 */
+	public static Command createSetInstanceComponentNameCommand(EditingDomain editingDomain, InstanceType instance,
+	      String newComponentName) {
+		//AdapterFactoryEditingDomain.getEditingDomainFor((EObject)instance);
+		EStructuralFeature feature = FelixPackage.eINSTANCE.getInstanceType_Component();
+		return SetCommand.create(editingDomain, instance, feature, newComponentName);
+	}
+
+	
+	
 	/**
 	 * Creates a set command to change the name of a instance (InstanceType)
 	 * @param editingDomain

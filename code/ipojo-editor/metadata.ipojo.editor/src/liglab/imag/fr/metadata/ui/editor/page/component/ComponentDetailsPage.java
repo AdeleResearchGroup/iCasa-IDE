@@ -20,11 +20,13 @@ import liglab.imag.fr.metadata.util.JDTUtil;
 
 import org.apache.felix.CallbackType;
 import org.apache.felix.ComponentType;
+import org.apache.felix.InstanceType;
 import org.apache.felix.PropertiesType;
 import org.apache.felix.PropertyType;
 import org.apache.felix.ProvidesType;
 import org.apache.felix.RequiresType;
 import org.eclipse.emf.common.command.Command;
+import org.eclipse.emf.common.command.CompoundCommand;
 import org.eclipse.emf.edit.domain.EditingDomain;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
@@ -82,7 +84,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 	/**
 	 * The component type being modified by this page
 	 */
-	private ComponentType componetType;
+	private ComponentType componentType;
 
 	/**
 	 * The editor (:S used only to refresh the component list)
@@ -235,9 +237,9 @@ public class ComponentDetailsPage implements IDetailsPage {
 	public void selectionChanged(IFormPart part, ISelection selection) {
 		IStructuredSelection ssel = (IStructuredSelection) selection;
 		if (ssel.size() == 1) {
-			componetType = (ComponentType) ssel.getFirstElement();
+			componentType = (ComponentType) ssel.getFirstElement();
 		} else
-			componetType = null;
+			componentType = null;
 		update();
 	}
 
@@ -660,22 +662,22 @@ public class ComponentDetailsPage implements IDetailsPage {
 	 * 
 	 */
 	private void update() {
-		if (componetType != null) {
+		if (componentType != null) {
 
 			removeListeners();
 
-			nameText.setText(componetType.getName());
+			nameText.setText(componentType.getName());
 
 			classNameText.setText("");
 			
-			if (componetType.getClassname() != null)
-				classNameText.setText(componetType.getClassname());
+			if (componentType.getClassname() != null)
+				classNameText.setText(componentType.getClassname());
 
-			specificationsViewer.setInput(componetType);
+			specificationsViewer.setInput(componentType);
 
-			dependenciesViewer.setInput(componetType.getRequires());
+			dependenciesViewer.setInput(componentType.getRequires());
 
-			List<PropertiesType> props = componetType.getProperties();
+			List<PropertiesType> props = componentType.getProperties();
 			if (props.size() > 0) {
 				List<PropertyType> innerProps = props.get(0).getProperty();
 				propertiesViewer.setInput(innerProps.toArray());
@@ -685,10 +687,10 @@ public class ComponentDetailsPage implements IDetailsPage {
 
 			validateText.setText("");
 			invalidateText.setText("");
-			CallbackType callback = ModelUtil.getValidateCallback(componetType);
+			CallbackType callback = ModelUtil.getValidateCallback(componentType);
 			if (callback != null)
 				validateText.setText(callback.getMethod());
-			callback = ModelUtil.getInvalidateCallback(componetType);
+			callback = ModelUtil.getInvalidateCallback(componentType);
 			if (callback != null)
 				invalidateText.setText(callback.getMethod());
 
@@ -737,16 +739,16 @@ public class ComponentDetailsPage implements IDetailsPage {
 	 * Refreshes the dependencies viewer
 	 */
 	private void refreshDependenciesViewer() {
-		if (componetType != null)
-			dependenciesViewer.setInput(componetType.getRequires().toArray());
+		if (componentType != null)
+			dependenciesViewer.setInput(componentType.getRequires().toArray());
 	}
 
 	/**
 	 * Refreshes the properties viewer
 	 */
 	private void refreshPropertiesViewer() {
-		if (componetType != null)
-			propertiesViewer.setInput(componetType.getProperties().get(0).getProperty().toArray());
+		if (componentType != null)
+			propertiesViewer.setInput(componentType.getProperties().get(0).getProperty().toArray());
 	}
 
 	/**
@@ -759,21 +761,33 @@ public class ComponentDetailsPage implements IDetailsPage {
 
 		@Override
 		public void modifyText(ModifyEvent event) {
-			if (componetType != null) {
+			if (componentType != null) {
 				EditingDomain editingDomain = editor.getEditingDomain();
 				Command command = null;
 
 				if (event.widget.equals(nameText)) {
-					command = CommandFactory.createSetComponentNameCommand(editingDomain, componetType,
-					      nameText.getText());
+					String componentNewName = nameText.getText();
+					CompoundCommand compoundCommand = new CompoundCommand(); 
+					Command aCommand = CommandFactory.createSetComponentNameCommand(editingDomain, componentType,
+					      componentNewName);
+					compoundCommand.append(aCommand);
+					
+					List<InstanceType> instances = ModelUtil.getInstances(componentType);
+					for (InstanceType instance : instances) {
+	               aCommand = CommandFactory.createSetInstanceComponentNameCommand(editingDomain, instance, componentNewName);
+	               compoundCommand.append(aCommand);
+               }
+					
+					command = compoundCommand;
+					
 				} else if (event.widget.equals(classNameText)) {
-					command = CommandFactory.createSetComponentClassCommand(editingDomain, componetType,
+					command = CommandFactory.createSetComponentClassCommand(editingDomain, componentType,
 					      classNameText.getText());
 				} else if (event.widget.equals(validateText)) {
-					command = CommandFactory.createSetValidateTransitionCommand(editingDomain, componetType,
+					command = CommandFactory.createSetValidateTransitionCommand(editingDomain, componentType,
 					      validateText.getText());
 				} else if (event.widget.equals(invalidateText)) {
-					command = CommandFactory.createSetInvalidateTransitionCommand(editingDomain, componetType,
+					command = CommandFactory.createSetInvalidateTransitionCommand(editingDomain, componentType,
 					      invalidateText.getText());
 				}
 				if (command != null)
@@ -788,14 +802,14 @@ public class ComponentDetailsPage implements IDetailsPage {
 
 		@Override
 		public void widgetSelected(SelectionEvent event) {
-			if (componetType != null) {
+			if (componentType != null) {
 				String data = (String) event.widget.getData();
 				EditingDomain editingDomain = editor.getEditingDomain();
 
 				if (data.equals("addDependency")) {
 					DependencyDialog dialog = new DependencyDialog(editingDomain, null);
 					if (dialog.open() == Window.OK) {
-						Command command = CommandFactory.createAddRequirementCommand(editingDomain, componetType,
+						Command command = CommandFactory.createAddRequirementCommand(editingDomain, componentType,
 						      dialog.getRequirement());
 						executeCommand(command);
 						refreshDependenciesViewer();
@@ -812,7 +826,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 					IStructuredSelection selection = (IStructuredSelection) dependenciesViewer.getSelection();
 					if (selection.size() > 0) {
 						RequiresType requirement = (RequiresType) selection.getFirstElement();
-						Command command = CommandFactory.createRemoveRequirementCommand(editingDomain, componetType,
+						Command command = CommandFactory.createRemoveRequirementCommand(editingDomain, componentType,
 						      requirement);
 						executeCommand(command);
 						refreshDependenciesViewer();
@@ -826,14 +840,14 @@ public class ComponentDetailsPage implements IDetailsPage {
 
 		@Override
 		public void widgetSelected(SelectionEvent event) {
-			if (componetType != null) {
+			if (componentType != null) {
 				String data = (String) event.widget.getData();
 				EditingDomain editingDomain = editor.getEditingDomain();
 
 				if (data.equals("addProperty")) {
 					PropertyDialog dialog = new PropertyDialog(editingDomain, null, true);
 					if (dialog.open() == Window.OK) {
-						Command command = CommandFactory.createAddPropertyCommand(editingDomain, componetType,
+						Command command = CommandFactory.createAddPropertyCommand(editingDomain, componentType,
 						      dialog.getProperty());
 						executeCommand(command);
 						refreshPropertiesViewer();
@@ -854,7 +868,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 					if (selection.size() > 0) {
 						PropertyType property = (PropertyType) selection.getFirstElement();
 						Command command = CommandFactory
-						      .createRemovePropertyCommand(editingDomain, componetType, property);
+						      .createRemovePropertyCommand(editingDomain, componentType, property);
 						executeCommand(command);
 						refreshPropertiesViewer();
 					}
@@ -867,7 +881,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 
 		@Override
 		public void widgetSelected(SelectionEvent event) {
-			if (componetType != null) {
+			if (componentType != null) {
 				String data = (String) event.widget.getData();
 				// EditingDomain editingDomain = editor.getEditingDomain();
 				if (data.equals("clearClass")) {
@@ -886,7 +900,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 
 		@Override
 		public void widgetSelected(SelectionEvent event) {
-			if (componetType != null) {
+			if (componentType != null) {
 				String data = (String) event.widget.getData();
 				EditingDomain editingDomain = editor.getEditingDomain();
 				if (data.equals("addSpecification")) {
@@ -895,7 +909,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 					      IJavaElementSearchConstants.CONSIDER_INTERFACES, true);
 					if (selectedType != null) {
 						String spec = selectedType.getFullyQualifiedName();
-						Command command = CommandFactory.createAddProvidesCommand(editingDomain, componetType, spec);
+						Command command = CommandFactory.createAddProvidesCommand(editingDomain, componentType, spec);
 						executeCommand(command);
 						specificationsViewer.refresh(false);
 					}
@@ -947,7 +961,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 		@Override
 		public void widgetSelected(SelectionEvent event) {
 
-			if (componetType != null) {
+			if (componentType != null) {
 				String data = (String) event.widget.getData();
 				EditingDomain editingDomain = editor.getEditingDomain();
 				if (data.equals("addInterface")) {
@@ -967,7 +981,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 							specsStr = concatInterface(specsStr, spec);
 						specsStr = concatInterface(specsStr, selectedType.getFullyQualifiedName());
 
-						Command command = CommandFactory.createAddSpecification(editingDomain, componetType, specsStr);
+						Command command = CommandFactory.createAddSpecification(editingDomain, componentType, specsStr);
 						executeCommand(command);
 
 						List<String> specs = Arrays.asList(specsStr.split("\\s*,\\s*"));
@@ -989,7 +1003,7 @@ public class ComponentDetailsPage implements IDetailsPage {
 						specsStr = concatInterface(specsStr, spec);
 					}
 
-					Command command = CommandFactory.createAddSpecification(editingDomain, componetType, specsStr);
+					Command command = CommandFactory.createAddSpecification(editingDomain, componentType, specsStr);
 					executeCommand(command);
 
 					List<String> specs = Arrays.asList(specsStr.split("\\s*,\\s*"));

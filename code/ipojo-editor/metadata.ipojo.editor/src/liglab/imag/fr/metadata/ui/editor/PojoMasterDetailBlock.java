@@ -3,15 +3,19 @@
  */
 package liglab.imag.fr.metadata.ui.editor;
 
+import java.util.List;
+
 import liglab.imag.fr.metadata.editor.ComponentEditorPlugin;
 import liglab.imag.fr.metadata.emf.CommandFactory;
 import liglab.imag.fr.metadata.emf.ModelUtil;
 import liglab.imag.fr.metadata.ui.editor.providers.ComponentLabelProvider;
 
 import org.apache.felix.ComponentType;
+import org.apache.felix.InstanceType;
 import org.eclipse.emf.common.command.Command;
 import org.eclipse.emf.edit.domain.EditingDomain;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -96,9 +100,9 @@ public abstract class PojoMasterDetailBlock extends MasterDetailsBlock {
 		tree.setLayoutData(gd);
 
 		if (addEditionButtons()) {
-			
+
 			AddRemoveSelectionListener listener = new AddRemoveSelectionListener();
-			
+
 			Button addButton = toolkit.createButton(client, "Add", SWT.PUSH); //$NON-NLS-1$
 			addButton.setData("add");
 			addButton.addSelectionListener(listener);
@@ -136,7 +140,6 @@ public abstract class PojoMasterDetailBlock extends MasterDetailsBlock {
 
 	}
 
-	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -224,9 +227,21 @@ public abstract class PojoMasterDetailBlock extends MasterDetailsBlock {
 				IStructuredSelection selection = (IStructuredSelection) componentsViewer.getSelection();
 				if (!selection.isEmpty()) {
 					ComponentType componentType = (ComponentType) selection.getFirstElement();
-					Command command = CommandFactory.createRemoveComponentTypeCommand(editingDomain, componentType);
-					ModelUtil.executeCommand(editingDomain, command);
-					componentsViewer.refresh();
+
+					boolean eliminateConfirmation = true;
+					List<InstanceType> instances = ModelUtil.getInstances(componentType);
+					if (!instances.isEmpty()) {
+						String message = componentType.getName()
+						      + " component type has almost one instance defined, are you sure of remove it?";
+						eliminateConfirmation = MessageDialog.openQuestion(null, "Remove Component Type Confirmation",
+						      message);
+					}
+
+					if (eliminateConfirmation) {
+						Command command = CommandFactory.createRemoveComponentTypeCommand(editingDomain, componentType);
+						ModelUtil.executeCommand(editingDomain, command);
+						componentsViewer.refresh();
+					}
 				}
 			}
 		}

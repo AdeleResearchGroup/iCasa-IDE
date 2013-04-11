@@ -14,7 +14,12 @@ import liglab.imag.fr.metadata.ui.editor.page.instance.InstanceMasterPage;
 
 import org.apache.felix.DocumentRoot;
 import org.apache.felix.IpojoType;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.emf.common.command.BasicCommandStack;
@@ -39,10 +44,12 @@ import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
 import org.eclipse.ui.forms.editor.FormEditor;
@@ -50,19 +57,15 @@ import org.eclipse.ui.part.MultiPageEditorSite;
 import org.eclipse.wst.sse.ui.StructuredTextEditor;
 import org.eclipse.wst.xml.core.internal.provisional.contenttype.ContentTypeIdForXML;
 
-public class MetadataEditor extends FormEditor {
+public class MetadataEditor extends FormEditor implements IResourceChangeListener {
 
 	/** The text editor used in page 0. */
 	private StructuredTextEditor xmlEditor;
 
-	/** 
+	/**
 	 * The model been edited.
 	 */
 	private IpojoType pojoModel;
-
-	
-	//FileEditorInput fileEditorInput;
-
 
 	/**
 	 * This keeps track of the editing domain that is used to track all changes
@@ -153,17 +156,18 @@ public class MetadataEditor extends FormEditor {
 	 */
 	protected ComposedAdapterFactory adapterFactory;
 
-	
 	/**
-	 * Resources that have been saved.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
+	 * Resources that have been saved. <!-- begin-user-doc --> <!-- end-user-doc
+	 * -->
+	 * 
 	 * @generated
 	 */
 	protected Collection<Resource> savedResources = new ArrayList<Resource>();
+
 	public MetadataEditor() {
 		super();
 		initializeEditingDomain();
+		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
 	}
 
 	@Override
@@ -172,20 +176,16 @@ public class MetadataEditor extends FormEditor {
 		createModel();
 
 		try {
-			// addPage(new MetadataEditorGUIPage(this, "first", "iPOJO Editor"));
-			// addPage(new SecondPage(this));
 			addPage(new ComponentMasterPage(this, "master-details-component", "Component Types Definition"));
 			addPage(new InstanceMasterPage(this, "master-details-instance", "Components Configuration"));
-			//addPage(new InstanceMasterPage(this, "master-details-instance", "Instance Defintion"), getEditorInput());
 			// XML Editor is created
 			xmlEditor = new StructuredTextEditor() {
 				@Override
 				public boolean isEditable() {
-				   return false;
+					return false;
 				}
-			}; 
-			
-			
+			};
+
 			int index = addPage(xmlEditor, getEditorInput());
 			setPageText(index, "XML (Read Only)");
 
@@ -198,8 +198,7 @@ public class MetadataEditor extends FormEditor {
 	@Override
 	public void doSave(IProgressMonitor monitor) {
 		final Map<Object, Object> saveOptions = new HashMap<Object, Object>();
-		saveOptions.put(Resource.OPTION_SAVE_ONLY_IF_CHANGED,
-		      Resource.OPTION_SAVE_ONLY_IF_CHANGED_MEMORY_BUFFER);
+		saveOptions.put(Resource.OPTION_SAVE_ONLY_IF_CHANGED, Resource.OPTION_SAVE_ONLY_IF_CHANGED_MEMORY_BUFFER);
 
 		// Do the work within an operation because this is a long running activity
 		// that modifies the workbench.
@@ -247,14 +246,15 @@ public class MetadataEditor extends FormEditor {
 		}
 		updateProblemIndication = true;
 		updateProblemIndication();
-		
+
 		// Build the project
 		try {
-	      ((IFileEditorInput)this.getEditorInput()).getFile().getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
-      } catch (CoreException e) {
-	      e.printStackTrace();
-      }
-		
+			((IFileEditorInput) this.getEditorInput()).getFile().getProject()
+			      .build(IncrementalProjectBuilder.FULL_BUILD, null);
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	@Override
@@ -267,8 +267,6 @@ public class MetadataEditor extends FormEditor {
 		return false;
 	}
 
-	
-	
 	@Override
 	protected IEditorSite createSite(IEditorPart page) {
 		IEditorSite site = null;
@@ -284,7 +282,6 @@ public class MetadataEditor extends FormEditor {
 		}
 		return site;
 	}
-	
 
 	@Override
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
@@ -293,15 +290,14 @@ public class MetadataEditor extends FormEditor {
 
 	@Override
 	public boolean isDirty() {
-		//return dirty;
-		return ((BasicCommandStack)editingDomain.getCommandStack()).isSaveNeeded();
+		// return dirty;
+		return ((BasicCommandStack) editingDomain.getCommandStack()).isSaveNeeded();
 	}
 
 	public IpojoType getModel() {
 		return pojoModel;
 	}
 
-	
 	public void fireDirtyProperty() {
 		firePropertyChange(IEditorPart.PROP_DIRTY);
 	}
@@ -348,13 +344,12 @@ public class MetadataEditor extends FormEditor {
 	public Diagnostic analyzeResourceProblems(Resource resource, Exception exception) {
 		if (!resource.getErrors().isEmpty() || !resource.getWarnings().isEmpty()) {
 			BasicDiagnostic basicDiagnostic = new BasicDiagnostic(Diagnostic.ERROR, "ipojo-model.editor", 0,
-			      "_UI_CreateModelError_message", new Object[] { exception == null ? (Object) resource
-			            : exception });
+			      "_UI_CreateModelError_message", new Object[] { exception == null ? (Object) resource : exception });
 			basicDiagnostic.merge(EcoreUtil.computeDiagnostic(resource, true));
 			return basicDiagnostic;
 		} else if (exception != null) {
-			return new BasicDiagnostic(Diagnostic.ERROR, "ipojo-model.editor", 0,
-			      "_UI_CreateModelError_message", new Object[] { exception });
+			return new BasicDiagnostic(Diagnostic.ERROR, "ipojo-model.editor", 0, "_UI_CreateModelError_message",
+			      new Object[] { exception });
 		} else {
 			return Diagnostic.OK_INSTANCE;
 		}
@@ -456,11 +451,11 @@ public class MetadataEditor extends FormEditor {
 						Command mostRecentCommand = ((CommandStack) event.getSource()).getMostRecentCommand();
 						if (mostRecentCommand != null) {
 							IEditorPart editorPart = getEditor(1);
-							if (editorPart!=null) {
+							if (editorPart != null) {
 								if (editorPart instanceof InstanceMasterPage) {
-		                     InstanceMasterPage page = (InstanceMasterPage) editorPart;
-		                     page.refreshComponentList();
-	                     }
+									InstanceMasterPage page = (InstanceMasterPage) editorPart;
+									page.refreshComponentList();
+								}
 							}
 						}
 
@@ -478,8 +473,7 @@ public class MetadataEditor extends FormEditor {
 
 		// Create the editing domain with a special command stack.
 		//
-		editingDomain = new AdapterFactoryEditingDomain(adapterFactory, commandStack,
-		      new HashMap<Resource, Boolean>());
+		editingDomain = new AdapterFactoryEditingDomain(adapterFactory, commandStack, new HashMap<Resource, Boolean>());
 	}
 
 	/**
@@ -493,8 +487,7 @@ public class MetadataEditor extends FormEditor {
 	protected boolean isPersisted(Resource resource) {
 		boolean result = false;
 		try {
-			InputStream stream = editingDomain.getResourceSet().getURIConverter()
-			      .createInputStream(resource.getURI());
+			InputStream stream = editingDomain.getResourceSet().getURIConverter().createInputStream(resource.getURI());
 			if (stream != null) {
 				result = true;
 				stream.close();
@@ -516,5 +509,40 @@ public class MetadataEditor extends FormEditor {
 	public EditingDomain getEditingDomain() {
 		return editingDomain;
 	}
-	
+
+	/**
+	 * Tracking when the project is closed or deleted to close the editor
+	 */
+	@Override
+	public void resourceChanged(final IResourceChangeEvent event) {
+
+		final IEditorInput input = getEditorInput();
+		if (!(input instanceof IFileEditorInput))
+			return;
+		final IFile editorFile = ((IFileEditorInput) input).getFile();
+
+		if (event.getType() == IResourceChangeEvent.PRE_CLOSE || event.getType() == IResourceChangeEvent.PRE_DELETE) {
+			IProject editorFileProject = editorFile.getProject();
+			IProject projectToClose = (IProject) event.getResource();
+
+			if (editorFileProject == projectToClose) {
+
+				Display.getDefault().asyncExec(new Runnable() {
+					public void run() {
+						if (getSite() == null)
+							return;
+						if (getSite().getWorkbenchWindow() == null)
+							return;
+
+						IWorkbenchPage[] pages = getSite().getWorkbenchWindow().getPages();
+						for (int i = 0; i < pages.length; i++) {
+							IEditorPart editorPart = pages[i].findEditor(input);
+							pages[i].closeEditor(editorPart, true);
+						}
+					}
+				});
+			}
+		}
+	}
+
 }

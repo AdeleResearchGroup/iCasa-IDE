@@ -18,9 +18,9 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.ide,
  ipojo-model,
  org.eclipse.emf.edit.ui;bundle-version="2.6.0",
- org.eclipse.pde.core;bundle-version="3.6.1",
- org.eclipse.text.source;bundle-version="3.5.200"
+ org.eclipse.pde.core;bundle-version="3.6.1"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-Vendor: Adele (LIG)
-Import-Package: 
+Import-Package: org.eclipse.jface.text.source
+

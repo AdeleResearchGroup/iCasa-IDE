@@ -2,16 +2,11 @@ package liglab.imag.fr.metadata.editor;
 
 import java.net.URL;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
-import org.eclipse.pde.core.target.ITargetDefinition;
-import org.eclipse.pde.core.target.ITargetLocation;
-import org.eclipse.pde.core.target.ITargetPlatformService;
-import org.eclipse.pde.internal.core.target.DirectoryBundleContainer;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -28,6 +23,7 @@ public class ComponentEditorPlugin extends AbstractUIPlugin {
 	private static ComponentEditorPlugin plugin;
 	
 	private BundleContext fBundleContext;
+	
 
 	public static final String IMG_HORIZONTAL = "horizontal"; //$NON-NLS-1$
 	public static final String IMG_VERTICAL = "vertical"; //$NON-NLS-1$
@@ -35,8 +31,9 @@ public class ComponentEditorPlugin extends AbstractUIPlugin {
 	public static final String IMG_INSTANCE = "instance"; //$NON-NLS-1$
 	
 	
-	public static final String DIRECTORY_PREFERENCE = "Directory_Preference";
+	public static final String TARGET_DIRECTORY_PREFERENCE = "Directory_Preference";
 	public static final String ICASA_IMPORT_PREFERENCE = "iCasa_Import_Preference";
+	public static final String APPS_DIRECTORY_PREFERENCE = "Apps_Directory_Preference";
 
 	/**
 	 * The constructor
