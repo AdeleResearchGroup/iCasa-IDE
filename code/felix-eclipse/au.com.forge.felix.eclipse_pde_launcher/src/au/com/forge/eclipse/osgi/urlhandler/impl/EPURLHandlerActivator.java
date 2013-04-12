@@ -21,7 +21,8 @@
 package au.com.forge.eclipse.osgi.urlhandler.impl;
 
 import java.net.URLStreamHandler;
-import java.util.Properties;
+import java.util.Dictionary;
+import java.util.Hashtable;
 
 import javax.xml.parsers.SAXParserFactory;
 
@@ -56,6 +57,7 @@ public class EPURLHandlerActivator implements BundleActivator {
 	 */
 	public void start(BundleContext context) throws Exception {
 
+		/*
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		Properties serviceProps = new Properties();
 		serviceProps.setProperty(URLConstants.URL_HANDLER_PROTOCOL,
@@ -64,7 +66,15 @@ public class EPURLHandlerActivator implements BundleActivator {
 		eclipseHandlerReg = context.registerService(
 				URLStreamHandlerService.class.getName(), eclipseHandler,
 				serviceProps);
-
+		*/
+		SAXParserFactory factory = SAXParserFactory.newInstance();
+		Dictionary<String, Object> serviceProps = new Hashtable<String, Object>();
+		serviceProps.put(URLConstants.URL_HANDLER_PROTOCOL,
+				EclipseProjectURLHandler.URL_PROTOCOL);
+		eclipseHandler = new EclipseProjectURLHandler(factory);
+		eclipseHandlerReg = context.registerService(
+				URLStreamHandlerService.class.getName(), eclipseHandler,
+				serviceProps);
 	}
 
 	public void stop(BundleContext context) {

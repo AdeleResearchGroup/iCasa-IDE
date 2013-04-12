@@ -136,8 +136,12 @@ public class ComponentDetailsPage implements IDetailsPage {
 	 */
 	private TextFieldModifyListener textFieldModifyListener;
 
-	//private ButtonSelectionListener buttonSelectionListener;
 
+	/**
+	 * Default constructor
+	 * @param editor
+	 * @param componentsViewer
+	 */
 	public ComponentDetailsPage(MetadataEditor editor, Viewer componentsViewer) {
 		this.editor = editor;
 		this.componentsViewer = componentsViewer;

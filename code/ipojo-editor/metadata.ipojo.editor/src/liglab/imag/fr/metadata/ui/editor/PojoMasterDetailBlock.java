@@ -13,6 +13,7 @@ import liglab.imag.fr.metadata.ui.editor.providers.ComponentLabelProvider;
 import org.apache.felix.ComponentType;
 import org.apache.felix.InstanceType;
 import org.eclipse.emf.common.command.Command;
+import org.eclipse.emf.common.command.CompoundCommand;
 import org.eclipse.emf.edit.domain.EditingDomain;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -238,7 +239,13 @@ public abstract class PojoMasterDetailBlock extends MasterDetailsBlock {
 					}
 
 					if (eliminateConfirmation) {
-						Command command = CommandFactory.createRemoveComponentTypeCommand(editingDomain, componentType);
+						CompoundCommand command = new CompoundCommand();
+						Command aCommand = CommandFactory.createRemoveComponentTypeCommand(editingDomain, componentType);
+						command.append(aCommand);						
+						for (InstanceType instance : instances) {
+		               aCommand = CommandFactory.createRemoveInstanceCommand(editingDomain, instance);
+		               command.append(aCommand);
+	               }
 						ModelUtil.executeCommand(editingDomain, command);
 						componentsViewer.refresh();
 					}
