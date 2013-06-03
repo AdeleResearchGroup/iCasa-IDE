@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            category="metadata.ipojo.editor.general"
+            class="liglab.imag.fr.ipojo.preferences.page.PojoEditorPreferencePage"
+            id="metadata.ipojo.editor.deploymentPage"
+            name="iPojo Preferences">
+      </page>
+   </extension>
+   
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="liglab.imag.fr.ipojo.preferences.page.PojoEditorPreferenceInitializer">
+      </initializer>
+   </extension>   
+
+</plugin>

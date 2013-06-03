@@ -1,11 +1,13 @@
-package liglab.imag.fr.metadata.ui.editor.preferences;
+package liglab.imag.fr.ipojo.preferences.page;
+
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-import liglab.imag.fr.metadata.editor.ComponentEditorPlugin;
+import liglab.imag.fr.ipojo.preferences.IPojoPreferencesPlugin;
+import liglab.imag.fr.ipojo.preferences.util.IPojoPreferencesContants;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -43,7 +45,7 @@ public class PojoEditorPreferencePage extends FieldEditorPreferencePage implemen
 
 	public PojoEditorPreferencePage() {
 		super(GRID);
-		setPreferenceStore(ComponentEditorPlugin.getDefault().getPreferenceStore());
+		setPreferenceStore(IPojoPreferencesPlugin.getDefault().getPreferenceStore());
 		setDescription("iCasa (iPojo) Editor Preferences");
 	}
 
@@ -53,17 +55,17 @@ public class PojoEditorPreferencePage extends FieldEditorPreferencePage implemen
 	 * editor knows how to save and restore itself.
 	 */
 	public void createFieldEditors() {
-		deploymentDirectoryFieldEditor = new DirectoryFieldEditor(ComponentEditorPlugin.TARGET_DIRECTORY_PREFERENCE,
+		deploymentDirectoryFieldEditor = new DirectoryFieldEditor(IPojoPreferencesContants.TARGET_DIRECTORY_PREFERENCE,
 		      "&OSGi (iPojo) installation directory:", getFieldEditorParent());
 
 		deploymentDirectoryFieldEditor.getTextControl(getFieldEditorParent()).setEditable(false);
 		addField(deploymentDirectoryFieldEditor);
 
-		applicationDirectory = new StringFieldEditor(ComponentEditorPlugin.APPS_DIRECTORY_PREFERENCE,
+		applicationDirectory = new StringFieldEditor(IPojoPreferencesContants.APPS_DIRECTORY_PREFERENCE,
 		      "Applications directory", getFieldEditorParent());
 		addField(applicationDirectory);
 
-		addField(new BooleanFieldEditor(ComponentEditorPlugin.ICASA_IMPORT_PREFERENCE,
+		addField(new BooleanFieldEditor(IPojoPreferencesContants.ICASA_IMPORT_PREFERENCE,
 		      "&Add iCasa packages to new iPojo Projects ", getFieldEditorParent()));
 
 	}
@@ -253,7 +255,7 @@ public class PojoEditorPreferencePage extends FieldEditorPreferencePage implemen
 	 * @return
 	 */
 	private ITargetPlatformService getTargetService() {
-		return (ITargetPlatformService) ComponentEditorPlugin.getDefault().acquireService(
+		return (ITargetPlatformService) IPojoPreferencesPlugin.getDefault().acquireService(
 		      ITargetPlatformService.class.getName());
 	}
 

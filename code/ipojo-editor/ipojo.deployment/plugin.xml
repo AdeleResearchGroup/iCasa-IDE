@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:org.eclipse.jdt.ui.PackageExplorer">
+         <menu
+               label="iCasa" id="metadata.ipojo.editor.menu3">
+            <command
+                  commandId="metadata.ipojo.editor.deployment.command"
+                  icon="icons/db_add.png"
+                  label="iCasa Bundle Deployment"
+                  style="push">
+               <visibleWhen
+                     checkEnabled="false">
+                  <with
+                        variable="selection">
+                     <iterate
+                           ifEmpty="false"
+                           operator="and">
+                        <instanceof
+                              value="org.eclipse.jdt.core.IJavaProject">
+                        </instanceof>
+                     </iterate>
+                  </with>
+               </visibleWhen>
+            </command>
+            <command
+                  commandId="metadata.ipojo.editor.cleaning.command"
+                  icon="icons/db_remove.png"
+                  label="Clean Applications Directory"
+                  style="push">
+               <visibleWhen
+                     checkEnabled="false">
+                  <with
+                        variable="selection">
+                     <iterate
+                           operator="and">
+                        <instanceof
+                              value="org.eclipse.jdt.core.IJavaProject">
+                        </instanceof></iterate>
+                  </with>
+               </visibleWhen>
+            </command>
+         </menu>
+      </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            defaultHandler="liglab.imag.fr.ipojo.deployment.handlers.DeploymentBundleHandler"
+            id="metadata.ipojo.editor.deployment.command"
+            name="Bundle Deployment">
+      </command>
+      <command
+            defaultHandler="liglab.imag.fr.ipojo.deployment.handlers.CleanApplicationsHandler"
+            id="metadata.ipojo.editor.cleaning.command"
+            name="Clean Applications Directory">
+      </command>
+   </extension>   
+
+</plugin>

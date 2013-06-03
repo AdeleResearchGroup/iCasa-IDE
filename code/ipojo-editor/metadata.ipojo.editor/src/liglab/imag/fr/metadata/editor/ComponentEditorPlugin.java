@@ -22,18 +22,12 @@ public class ComponentEditorPlugin extends AbstractUIPlugin {
 	// The shared instance
 	private static ComponentEditorPlugin plugin;
 	
-	private BundleContext fBundleContext;
 	
-
 	public static final String IMG_HORIZONTAL = "horizontal"; //$NON-NLS-1$
 	public static final String IMG_VERTICAL = "vertical"; //$NON-NLS-1$
 	public static final String IMG_COMPONENT = "component"; //$NON-NLS-1$
 	public static final String IMG_INSTANCE = "instance"; //$NON-NLS-1$
 	
-	
-	public static final String TARGET_DIRECTORY_PREFERENCE = "Directory_Preference";
-	public static final String ICASA_IMPORT_PREFERENCE = "iCasa_Import_Preference";
-	public static final String APPS_DIRECTORY_PREFERENCE = "Apps_Directory_Preference";
 
 	/**
 	 * The constructor
@@ -51,7 +45,6 @@ public class ComponentEditorPlugin extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
-		fBundleContext = context;
 	}
 
 	/*
@@ -62,7 +55,6 @@ public class ComponentEditorPlugin extends AbstractUIPlugin {
 	 * )
 	 */
 	public void stop(BundleContext context) throws Exception {
-		fBundleContext = null;
 		plugin = null;
 		super.stop(context);		
 	}
@@ -97,21 +89,5 @@ public class ComponentEditorPlugin extends AbstractUIPlugin {
 	
 
 	
-	/**
-	 * Returns a service with the specified name or <code>null</code> if none.
-	 * 
-	 * @param serviceName name of service
-	 * @return service object or <code>null</code> if none
-	 */
-	public Object acquireService(String serviceName) {
-		ServiceReference reference = fBundleContext.getServiceReference(serviceName);
-		if (reference == null)
-			return null;
-		Object service = fBundleContext.getService(reference);
-		if (service != null) {
-			fBundleContext.ungetService(reference);
-		}
-		return service;
-	}
 
 }

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package liglab.imag.fr.metadata.ui.editor.handlers;
+package liglab.imag.fr.ipojo.deployment.handlers;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -20,7 +20,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
-import liglab.imag.fr.metadata.editor.ComponentEditorPlugin;
+import liglab.imag.fr.ipojo.deployment.IPojoDeploymentPlugin;
+import liglab.imag.fr.ipojo.preferences.util.IPojoPreferencesContants;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -38,13 +39,14 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.preferences.IPreferencesService;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
@@ -73,24 +75,31 @@ public class DeploymentBundleHandler extends AbstractHandler {
 	 */
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-				
+
 		ISelection selection = HandlerUtil.getCurrentSelection(event);
 		if (selection instanceof IStructuredSelection) {
 			IStructuredSelection newSelection = (IStructuredSelection) selection;
 			if (newSelection.getFirstElement() instanceof IJavaProject) {
 				IJavaProject project = (IJavaProject) newSelection.getFirstElement();
 
-				IPreferenceStore store = ComponentEditorPlugin.getDefault().getPreferenceStore();
-				String deploymentDirectory = store.getString(ComponentEditorPlugin.TARGET_DIRECTORY_PREFERENCE);
-				
-				
-				
+				//IPreferenceStore store = IPojoDeploymentPlugin.getDefault().getPreferenceStore();
+				IPreferencesService preferencesService = Platform.getPreferencesService();
+				// String deploymentDirectory =
+				// store.getString(IPojoDeploymentPlugin.TARGET_DIRECTORY_PREFERENCE);
+
+				String deploymentDirectory = preferencesService.getString("ipojo.preferences",
+						IPojoPreferencesContants.TARGET_DIRECTORY_PREFERENCE, "", null);
+
 				if (deploymentDirectory != null && !deploymentDirectory.trim().isEmpty()) {
-					String appsDirectory = store.getString(ComponentEditorPlugin.APPS_DIRECTORY_PREFERENCE);
+					// String appsDirectory =
+					// store.getString(IPojoDeploymentPlugin.APPS_DIRECTORY_PREFERENCE);
+					String appsDirectory = preferencesService.getString("ipojo.preferences",
+							IPojoPreferencesContants.APPS_DIRECTORY_PREFERENCE, "", null);
 					if (appsDirectory.isEmpty())
 						appsDirectory = "load";
 					deploymentDirectory = deploymentDirectory + System.getProperty("file.separator") + appsDirectory;
-					String message = "Deployment of " + project.getElementName() + " to " + deploymentDirectory + " was sucessfull";
+					String message = "Deployment of " + project.getElementName() + " to " + deploymentDirectory
+					      + " was sucessfull";
 
 					try {
 						exportBundle((IProject) project.getCorrespondingResource(), deploymentDirectory, null);
@@ -99,7 +108,7 @@ public class DeploymentBundleHandler extends AbstractHandler {
 					} catch (CoreException e) {
 						e.printStackTrace();
 					}
-					
+
 					MessageDialog.openConfirm(null, "iCasa Environment", message);
 				}
 
@@ -117,8 +126,8 @@ public class DeploymentBundleHandler extends AbstractHandler {
 	 * @param aMonitor
 	 *           A progress monitor
 	 */
-	public void exportBundle(final IProject project, String deploymentDirectory,
-	      final IProgressMonitor aMonitor) throws CoreException {
+	public void exportBundle(final IProject project, String deploymentDirectory, final IProgressMonitor aMonitor)
+	      throws CoreException {
 
 		// Store the workspace root (should'nt move...)
 		// pWorkspaceRoot = aProject.getWorkspace().getRoot();
@@ -164,14 +173,11 @@ public class DeploymentBundleHandler extends AbstractHandler {
 
 		} catch (IOException e) {
 
-			throw new CoreException(new Status(IStatus.ERROR, ComponentEditorPlugin.PLUGIN_ID,
+			throw new CoreException(new Status(IStatus.ERROR, IPojoDeploymentPlugin.PLUGIN_ID,
 			      "Error writing JAR file for '" + project.getName() + "'", e));
 		}
 	}
 
-	
-
-	
 	/**
 	 * Prepares the project output files mapping for a JAR output, based on the
 	 * Java project output folder
@@ -182,7 +188,7 @@ public class DeploymentBundleHandler extends AbstractHandler {
 	 *           A map to populate with found files
 	 * @throws CoreException
 	 */
-	protected void prepareProjectFilesList(final IJavaProject javaProject, final IProject project, 
+	protected void prepareProjectFilesList(final IJavaProject javaProject, final IProject project,
 	      final Map<IFile, String> aJarEntriesMapping) throws CoreException {
 
 		try {
@@ -190,11 +196,10 @@ public class DeploymentBundleHandler extends AbstractHandler {
 			final IPath outputLocation = javaProject.getOutputLocation();
 			final IWorkspaceRoot workspaceRoot = project.getWorkspace().getRoot();
 			final IFolder outputFolder = workspaceRoot.getFolder(outputLocation);
-						
+
 			// Look for any file in out folder (generally bin)
 			visitFolder(outputFolder.getProjectRelativePath(), outputFolder, aJarEntriesMapping);
 
-			
 			IResource[] members = project.members(false);
 
 			Set<IResource> selectedMembers = new HashSet<IResource>(Arrays.asList(members));
@@ -240,8 +245,8 @@ public class DeploymentBundleHandler extends AbstractHandler {
 	 * @throws CoreException
 	 *            An error occurred while listing members of a resource
 	 */
-	protected void visitFolder(final IPath aBasePath, final IFolder aFolder,
-	      final Map<IFile, String> aJarEntriesMapping) throws CoreException {
+	protected void visitFolder(final IPath aBasePath, final IFolder aFolder, final Map<IFile, String> aJarEntriesMapping)
+	      throws CoreException {
 
 		for (IResource resource : aFolder.members()) {
 
@@ -378,7 +383,7 @@ public class DeploymentBundleHandler extends AbstractHandler {
 
 		} catch (IOException e) {
 			// Propagate the error
-			IStatus exceptionStatus = new Status(IStatus.WARNING, ComponentEditorPlugin.PLUGIN_ID,
+			IStatus exceptionStatus = new Status(IStatus.WARNING, IPojoDeploymentPlugin.PLUGIN_ID,
 			      "Couldn't read the manifest content", e);
 			throw new CoreException(exceptionStatus);
 		}

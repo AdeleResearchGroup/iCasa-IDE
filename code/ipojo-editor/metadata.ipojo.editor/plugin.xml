@@ -24,21 +24,7 @@
             priority="normal">
       </content-type>
    </extension>
-   <!--
-   <extension
-         point="org.eclipse.ui.popupMenus">
-      <objectContribution
-            adaptable="false"
-            id="metadata.ipojo.editor.objectContribution1"
-            objectClass="org.apache.felix.impl.ComponentTypeImpl">
-         <action
-               class="liglab.imag.fr.metadata.ui.editor.actions.CreateInstanceAction"
-               id="metadata.ipojo.editor.action1"
-               label="New Instance">
-         </action>
-      </objectContribution>
-   </extension>
-   -->
+
    <extension
          id="icasa.env.marker"
          name="iCasa Problem"
@@ -50,6 +36,9 @@
             name="component">
       </attribute>
    </extension>
+   
+   <!--
+      
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
@@ -59,6 +48,8 @@
             name="iPojo Preferences">
       </page>
    </extension>
+   
+
    <extension
          point="org.eclipse.ui.commands">
       <command
@@ -118,11 +109,16 @@
          </menu>
       </menuContribution>
    </extension>
+   
+
+   
    <extension
          point="org.eclipse.core.runtime.preferences">
       <initializer
             class="liglab.imag.fr.metadata.ui.editor.preferences.PojoEditorPreferenceInitializer">
       </initializer>
    </extension>
+   
+    --> 
 
 </plugin>

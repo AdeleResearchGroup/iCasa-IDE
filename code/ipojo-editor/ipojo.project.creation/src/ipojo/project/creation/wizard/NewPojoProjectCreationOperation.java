@@ -12,6 +12,8 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
 
+import liglab.imag.fr.ipojo.preferences.util.IPojoPreferencesContants;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -432,7 +434,7 @@ public class NewPojoProjectCreationOperation extends WorkspaceModifyOperation {
 		
 		// IPOJO Task : Add the import packages
 		IPreferencesService prefService = Platform.getPreferencesService();
-		boolean addImports = prefService.getBoolean("metadata.ipojo.editor", "iCasa_Import_Preference", false, null);
+		boolean addImports = prefService.getBoolean("ipojo.preferences", IPojoPreferencesContants.ICASA_IMPORT_PREFERENCE, false, null);
 		if (addImports) {
 			set.add("fr.liglab.adele.icasa.device");
 			set.add("fr.liglab.adele.icasa.device.light");
@@ -442,8 +444,7 @@ public class NewPojoProjectCreationOperation extends WorkspaceModifyOperation {
 			set.add("fr.liglab.adele.icasa.device.sound");
 			set.add("fr.liglab.adele.icasa.device.util");
 		}
-		
-		
+				
 		return set;
 	}
 

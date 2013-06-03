@@ -1,9 +1,10 @@
 /**
  * 
  */
-package liglab.imag.fr.metadata.ui.editor.preferences;
+package liglab.imag.fr.ipojo.preferences.page;
 
-import liglab.imag.fr.metadata.editor.ComponentEditorPlugin;
+import liglab.imag.fr.ipojo.preferences.IPojoPreferencesPlugin;
+import liglab.imag.fr.ipojo.preferences.util.IPojoPreferencesContants;
 
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -20,9 +21,9 @@ public class PojoEditorPreferenceInitializer extends AbstractPreferenceInitializ
 	 */
 	@Override
 	public void initializeDefaultPreferences() {
-		IPreferenceStore store = ComponentEditorPlugin.getDefault().getPreferenceStore();
-		store.setDefault(ComponentEditorPlugin.APPS_DIRECTORY_PREFERENCE, "applications");
-		store.setDefault(ComponentEditorPlugin.ICASA_IMPORT_PREFERENCE, true);
+		IPreferenceStore store = IPojoPreferencesPlugin.getDefault().getPreferenceStore();
+		store.setDefault(IPojoPreferencesContants.APPS_DIRECTORY_PREFERENCE, "applications");
+		store.setDefault(IPojoPreferencesContants.ICASA_IMPORT_PREFERENCE, true);
 	}
 
 }
