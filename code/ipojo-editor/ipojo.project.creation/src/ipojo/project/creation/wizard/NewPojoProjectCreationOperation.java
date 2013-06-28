@@ -37,15 +37,18 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.eclipse.osgi.service.resolver.ExportPackageDescription;
 import org.eclipse.pde.core.build.IBuildEntry;
 import org.eclipse.pde.core.build.IBuildModelFactory;
 import org.eclipse.pde.core.plugin.IFragment;
-import org.eclipse.pde.core.plugin.IMatchRules;
 import org.eclipse.pde.core.plugin.IPlugin;
 import org.eclipse.pde.core.plugin.IPluginBase;
 import org.eclipse.pde.core.plugin.IPluginImport;
 import org.eclipse.pde.core.plugin.IPluginLibrary;
+import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.core.plugin.IPluginReference;
+import org.eclipse.pde.core.plugin.PluginRegistry;
 import org.eclipse.pde.internal.core.ClasspathComputer;
 import org.eclipse.pde.internal.core.ICoreConstants;
 import org.eclipse.pde.internal.core.PDECore;
@@ -75,7 +78,6 @@ import org.eclipse.pde.ui.IFieldData;
 import org.eclipse.pde.ui.IFragmentFieldData;
 import org.eclipse.pde.ui.IPluginContentWizard;
 import org.eclipse.pde.ui.IPluginFieldData;
-import org.eclipse.pde.ui.templates.PluginReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -87,7 +89,7 @@ import org.osgi.framework.Constants;
 import org.osgi.service.prefs.BackingStoreException;
 
 /**
- * @author Gabriel
+ * @author Gabriel Pedraza Ferreira
  *
  */
 @SuppressWarnings("restriction")
@@ -331,6 +333,58 @@ public class NewPojoProjectCreationOperation extends WorkspaceModifyOperation {
 	}
 	
 	
+	/**
+	 * Adds the annotations class path container to the project build path
+	 * 
+	 * @param aProject
+	 *            Project to be modified
+	 */
+	private void addAnnotationsLibrary(final IProject aProject) {
+
+		// Get the Java nature
+		final IJavaProject javaProject;
+		try {
+			javaProject = (IJavaProject) aProject.getNature(JavaCore.NATURE_ID);
+
+		} catch (CoreException e) {
+			PDEPlugin.logErrorMessage("Can't get the Java nature " + aProject.getName());
+			return;
+		}
+
+		// Get current entries
+		final IClasspathEntry[] currentEntries;
+		try {
+			currentEntries = javaProject.getRawClasspath();
+		} catch (JavaModelException e) {
+			PDEPlugin.logErrorMessage("Error reading project classpath " + aProject.getName());
+			return;
+		}
+		
+		IPath annotationsContainerPath = new Path("org.ow2.chameleon.ipojo.CLASSPATH_CONTAINER");
+
+		for (IClasspathEntry entry : currentEntries) {
+
+			if (annotationsContainerPath.equals(entry.getPath())) {
+				// The annotation container is already here.
+				return;
+			}
+		}
+
+		// Set up the new class path array
+		final IClasspathEntry[] newEntries = new IClasspathEntry[currentEntries.length + 1];
+		System.arraycopy(currentEntries, 0, newEntries, 0, currentEntries.length);
+
+		// Add the new entry
+		newEntries[currentEntries.length] = JavaCore.newContainerEntry(annotationsContainerPath);
+
+		// Set the project class path
+		try {
+			javaProject.setRawClasspath(newEntries, null);
+		} catch (JavaModelException e) {
+			PDEPlugin.logErrorMessage("Error setting up the new project class path" + aProject.getName());
+		}
+	}
+	
 
 	/*
 	 * (non-Javadoc)
@@ -376,12 +430,15 @@ public class NewPojoProjectCreationOperation extends WorkspaceModifyOperation {
 
 		// IPOJO Task : create the metadatxml file
 		IFile metadataFile = createMetadataFile(project);
+		addAnnotationsLibrary(project);
+		
+		
 		
 		// generate the build.properties file
 		monitor.subTask(PDEUIMessages.NewProjectCreationOperation_buildPropertiesFile);
 		createBuildPropertiesFile(project);
-		monitor.worked(1);
-
+		monitor.worked(1);		
+		
 		// generate content contributed by template wizards
 		boolean contentWizardResult = true;
 		if (fContentWizard != null) {
@@ -432,10 +489,29 @@ public class NewPojoProjectCreationOperation extends WorkspaceModifyOperation {
 			}
 		}
 		
-		// IPOJO Task : Add the import packages
+		// IPOJO Task : Add the iCasa import packages
 		IPreferencesService prefService = Platform.getPreferencesService();
 		boolean addImports = prefService.getBoolean("ipojo.preferences", IPojoPreferencesContants.ICASA_IMPORT_PREFERENCE, false, null);
 		if (addImports) {
+			
+			IPluginModelBase[] models = PluginRegistry.getActiveModels();
+			
+			for (int i = 0; i < models.length; i++) {
+				BundleDescription desc = models[i].getBundleDescription();
+				ExportPackageDescription[] exported = desc.getExportPackages();
+				for (int j = 0; j < exported.length; j++) {
+					String name = exported[j].getName();		
+
+					if (name.startsWith("fr.liglab.adele.icasa")) {
+						set.add(name);
+					}
+				}				
+			}
+			
+			// Add the org.json package
+			set.add("org.json");
+			
+			/*
 			set.add("fr.liglab.adele.icasa.device");
 			set.add("fr.liglab.adele.icasa.device.light");
 			set.add("fr.liglab.adele.icasa.device.temperature");
@@ -443,10 +519,13 @@ public class NewPojoProjectCreationOperation extends WorkspaceModifyOperation {
 			set.add("fr.liglab.adele.icasa.device.presence");
 			set.add("fr.liglab.adele.icasa.device.sound");
 			set.add("fr.liglab.adele.icasa.device.util");
+			*/
 		}
 				
 		return set;
 	}
+	
+	
 
 	protected void fillBinIncludes(IProject project, IBuildEntry binEntry) throws CoreException {
 		if ((!fData.hasBundleStructure() || fContentWizard != null) && ((AbstractFieldData) fData).getOSGiFramework() == null)
