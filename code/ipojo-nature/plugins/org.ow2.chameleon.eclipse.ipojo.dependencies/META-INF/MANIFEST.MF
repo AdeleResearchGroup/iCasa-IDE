@@ -4,7 +4,7 @@ Bundle-Name: OW2 Chameleon :: iPOJO Nature Dependencies
 Bundle-SymbolicName: org.ow2.chameleon.eclipse.ipojo.dependencies
 Bundle-Version: 1.9.0.qualifier
 Bundle-Vendor: OW2 Chameleon
-Export-Package: org.apache.felix.ipojo;version="1.8.0";
+Export-Package: org.apache.felix.ipojo;
   uses:="org.apache.felix.ipojo.util,
    org.apache.felix.ipojo.handlers.dependency,
    org.apache.felix.ipojo.handlers.providedservice,
@@ -14,7 +14,7 @@ Export-Package: org.apache.felix.ipojo;version="1.8.0";
    org.apache.felix.ipojo.metadata,
    org.osgi.service.cm",
  org.apache.felix.ipojo.annotations,
- org.apache.felix.ipojo.architecture;version="1.8.0";
+ org.apache.felix.ipojo.architecture;
   uses:="org.apache.felix.ipojo.util,
    org.apache.felix.ipojo,
    org.osgi.framework,
@@ -24,14 +24,10 @@ Export-Package: org.apache.felix.ipojo;version="1.8.0";
    org.objectweb.asm,
    org.objectweb.asm.commons,
    org.apache.felix.ipojo.metadata",
- org.apache.felix.ipojo.manipulation.annotations;
-  uses:="org.objectweb.asm,
-   org.objectweb.asm.commons,
-   javax.xml.parsers,
-   org.apache.felix.ipojo.metadata",
  org.apache.felix.ipojo.manipulator,
  org.apache.felix.ipojo.manipulator.manifest;uses:="org.apache.felix.ipojo.manipulator",
  org.apache.felix.ipojo.manipulator.metadata;uses:="org.apache.felix.ipojo.manipulator",
+ org.apache.felix.ipojo.manipulator.metadata.annotation,
  org.apache.felix.ipojo.manipulator.render;uses:="org.apache.felix.ipojo.metadata",
  org.apache.felix.ipojo.manipulator.reporter;uses:="org.apache.felix.ipojo.manipulator",
  org.apache.felix.ipojo.manipulator.store;uses:="org.apache.felix.ipojo.manipulator,org.apache.felix.ipojo.metadata",
@@ -50,5 +46,6 @@ Require-Bundle: javax.xml,
  org.objectweb.asm,
  org.eclipse.core.runtime
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Bundle-ClassPath: org.apache.felix.ipojo.annotations-1.9.0-SNAPSHOT.jar,
- org.apache.felix.ipojo-1.9.0-SNAPSHOT.jar
+Bundle-ClassPath: org.apache.felix.ipojo-1.10.1.jar,
+ org.apache.felix.ipojo.manipulator-1.10.1.jar,
+ org.apache.felix.ipojo.annotations-1.10.1.jar

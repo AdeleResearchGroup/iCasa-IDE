@@ -511,15 +511,6 @@ public class NewPojoProjectCreationOperation extends WorkspaceModifyOperation {
 			// Add the org.json package
 			set.add("org.json");
 			
-			/*
-			set.add("fr.liglab.adele.icasa.device");
-			set.add("fr.liglab.adele.icasa.device.light");
-			set.add("fr.liglab.adele.icasa.device.temperature");
-			set.add("fr.liglab.adele.icasa.device.power");
-			set.add("fr.liglab.adele.icasa.device.presence");
-			set.add("fr.liglab.adele.icasa.device.sound");
-			set.add("fr.liglab.adele.icasa.device.util");
-			*/
 		}
 				
 		return set;
