@@ -200,6 +200,19 @@ public class ComponentMasterDetailBlock extends PojoMasterDetailBlock {
 				ImplementationClassModel classModel = validateComponent(componentType, compilationUnit);
 				classModel.completeImplementationClass(compilationUnit.getType(JDTUtil
 				      .getJavaClassName(fullClassName)));
+				
+				
+				// removes the previous error messages about this component
+				
+            try {
+            	IResource resource = javaProject.getUnderlyingResource();
+	            deletePreviousErrors(resource, componentType.getName());
+            } catch (JavaModelException e) {
+	            e.printStackTrace();
+            }
+				
+				//Save the editor state
+				editor.doSave(new NullProgressMonitor());
 
 			}
 		}

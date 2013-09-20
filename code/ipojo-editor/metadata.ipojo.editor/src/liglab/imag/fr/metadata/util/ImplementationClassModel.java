@@ -349,10 +349,7 @@ public class ImplementationClassModel {
 			e.printStackTrace();
 		}
 
-		/*
-		 * if (compilationUnit!=null) { addInterface("my.Interface");
-		 * saveCompilationUnit(); }
-		 */
+		
 
 	}
 
