@@ -57,26 +57,19 @@
 		
 	<h1>Setting the iCasa Runtime</h1>
 		<ul>
-			<li>Download and unzip in your system the <a href="http://adeleresearchgroup.github.io/iCasa-Simulator/snapshot/download.html">iCasa runtime.</a></li>
+			<li>Download and unzip in your system the <a href="http://adeleresearchgroup.github.io/iCasa">iCasa runtime.</a></li>
 			<li>Run Eclipse and select Window > Preferences ... from the main menu and go to iPOJO preferences section.</li>
 			<li>Click on Browse button and set the iPOJO installation directory using the directory created in the first step.</li>
 			<li>Finally, click on OK button.</li>
 		</ul>
 		  
-	<h1>Starting the simulator GUI</h1>
-
-          <ul>
-			<li>In a new shell, go to the folder where you extract the iPOJO runtime.</li>
-			<li>If you use a Windows OS, run the script startGUI.bat. If you use a UNIX machine, run the script startGUI.sh .</li>
-			<li>If all is correctly set, a message such as "Server started, use Ctrl+D to stop and go back to the console" will be displayed on the prompt.</li>
-		</ul>
 		  
 	<h1>Starting the simulator server</h1>
 		<ul>          
 			<li>In a new shell, go to the folder where you extract the iPOJO runtime.</li>
-			<li>If you're on a Windows OS, run the script icasa.teaching.distribution.bat to be in release mode and icasa.teaching.distributionDebug.start to be in debug mode.</li>
+			<li>If you're on a Windows OS, run the script startGateway.bat to be in release mode and debugGateway.bat to be in debug mode.</li>
 			<li>If you're on a UNIX machine, run the script startGateway.sh to be in release mode and debugGateway.sh to be in debug mode.</li>
-			<li>Now, everything is set up correctly. Launch Firefox web browser and connect to the address http://localhost:9000/ .</li>
+			<li>Now, everything is set up correctly. Launch Firefox web browser and connect to the address http://localhost:9000/simulator as from 1.2.6+ version  (http://localhost:8080/simulator for earlier versions).</li>
 		</ul>
 		
       </section>
