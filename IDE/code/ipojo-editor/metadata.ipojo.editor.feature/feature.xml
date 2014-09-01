@@ -2,7 +2,7 @@
 <feature
       id="metadata.ipojo.editor.feature"
       label="Metada iPOJO Editor Feature"
-      version="1.0.0.qualifier">
+      version="1.1.0.qualifier">
 
    <description url="http://www.apache.org/licenses/LICENSE-2.0">
       [Enter Feature Description here.]

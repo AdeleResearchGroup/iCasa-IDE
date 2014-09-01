@@ -91,7 +91,6 @@ public class PojoEditorPreferencePage extends FieldEditorPreferencePage implemen
 			platformDirectoryModified = false;
 		}
 
-		verifyExecutionConfiguration();
 		return ok;
 	}
 
@@ -105,53 +104,6 @@ public class PojoEditorPreferencePage extends FieldEditorPreferencePage implemen
 	}
 
 	
-	private void verifyExecutionConfiguration() {
-		Properties prop = new Properties();
-
-		String platformDirectory = deploymentDirectoryFieldEditor.getStringValue().trim();
-		String fileSeparator = System.getProperty("file.separator");
-		String configFilePath = platformDirectory + fileSeparator + "conf" + fileSeparator + "config.properties";
-		try {
-
-			// load a properties file
-			prop.load(new FileInputStream(configFilePath));
-						
-			String fileInstallDirProperty = (String) prop.get("felix.fileinstall.dir");
-			boolean existingDir = false;
-			String applicationDirectoryEntry = "./" + applicationDirectory.getStringValue().trim();
-			
-			if (fileInstallDirProperty!=null) {
-				String[] dirs = fileInstallDirProperty.split(",");
-				
-				for (String dir : dirs) {
-					if (dir.equals(applicationDirectoryEntry)) {
-						existingDir = true;
-						break;
-					}
-				}
-			} 
-
-			if (!existingDir) {
-				MessageDialog
-				      .openInformation(null, "ICasa Configuration",
-				            "The applications directory has not been found in configuration of the execution platform. The iCasa IDE will try to modify it");
-				
-				if (fileInstallDirProperty==null)
-					fileInstallDirProperty = applicationDirectoryEntry;
-				else
-					fileInstallDirProperty = fileInstallDirProperty + "," + applicationDirectoryEntry;
-					
-				
-				prop.setProperty("felix.fileinstall.dir", fileInstallDirProperty);
-				prop.store(new FileOutputStream(configFilePath), null);
-			}
-
-
-
-		} catch (IOException ex) {
-			MessageDialog.openWarning(null, "ICasa Configuration", "ICasa IDE could not open the execution platform configuration file");
-		}
-	}
 
 	/**
 	 * Configures a new Felix-iPojo target platform
@@ -243,8 +195,8 @@ public class PojoEditorPreferencePage extends FieldEditorPreferencePage implemen
 
 		ITargetLocation[] containers = new ITargetLocation[3];
 		containers[0] = service.newDirectoryLocation(path + fileSeparator + "bin");
-		containers[1] = service.newDirectoryLocation(path + fileSeparator + "load");
-		containers[2] = service.newDirectoryLocation(path + fileSeparator + "bundle");
+		containers[1] = service.newDirectoryLocation(path + fileSeparator + "core");
+		containers[2] = service.newDirectoryLocation(path + fileSeparator + "runtime");
 
 		targetDefinition.setTargetLocations(containers);
 		return targetDefinition;

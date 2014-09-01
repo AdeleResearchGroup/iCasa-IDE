@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: iPOJO Metadata Editor
 Bundle-SymbolicName: metadata.ipojo.editor;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.1.0.qualifier
 Bundle-Activator: liglab.imag.fr.metadata.editor.ComponentEditorPlugin
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
