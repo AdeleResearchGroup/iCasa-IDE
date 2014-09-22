@@ -3,17 +3,26 @@ package liglab.imag.fr.metadata.ui.editor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EventObject;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import liglab.imag.fr.metadata.editor.ComponentEditorPlugin;
 import liglab.imag.fr.metadata.ui.editor.page.component.ComponentMasterPage;
 import liglab.imag.fr.metadata.ui.editor.page.instance.InstanceMasterPage;
 
+import org.apache.felix.ComponentType;
 import org.apache.felix.DocumentRoot;
 import org.apache.felix.IpojoType;
+import org.apache.felix.ProvidesType;
+import org.apache.felix.RequiresType;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -22,6 +31,7 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.emf.common.command.BasicCommandStack;
 import org.eclipse.emf.common.command.Command;
 import org.eclipse.emf.common.command.CommandStack;
@@ -40,7 +50,13 @@ import org.eclipse.emf.edit.domain.EditingDomain;
 import org.eclipse.emf.edit.provider.ComposedAdapterFactory;
 import org.eclipse.emf.edit.ui.util.EditUIMarkerHelper;
 import org.eclipse.emf.edit.ui.util.EditUIUtil;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.pde.core.project.IBundleProjectDescription;
+import org.eclipse.pde.core.project.IPackageExportDescription;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.graphics.Point;
@@ -197,6 +213,9 @@ public class MetadataEditor extends FormEditor implements IResourceChangeListene
 
 	@Override
 	public void doSave(IProgressMonitor monitor) {
+		
+		final IProject project = ((IFileEditorInput) this.getEditorInput()).getFile().getProject();
+		
 		final Map<Object, Object> saveOptions = new HashMap<Object, Object>();
 		saveOptions.put(Resource.OPTION_SAVE_ONLY_IF_CHANGED, Resource.OPTION_SAVE_ONLY_IF_CHANGED_MEMORY_BUFFER);
 
@@ -220,6 +239,15 @@ public class MetadataEditor extends FormEditor implements IResourceChangeListene
 							if (resource.getTimeStamp() != timeStamp) {
 								savedResources.add(resource);
 							}
+							
+							/*
+							 * Update Manifest to automatically handle export and import packages
+							 * 
+							 * TODO this should be better done by the iPOJO builder, to discuss
+							 */
+							
+							updateManifest(project, monitor);
+							
 						} catch (Exception exception) {
 							resourceToDiagnosticMap.put(resource, analyzeResourceProblems(resource, exception));
 						}
@@ -247,6 +275,7 @@ public class MetadataEditor extends FormEditor implements IResourceChangeListene
 		updateProblemIndication = true;
 		updateProblemIndication();
 
+		
 		// Build the project
 		try {
 			((IFileEditorInput) this.getEditorInput()).getFile().getProject()
@@ -255,6 +284,68 @@ public class MetadataEditor extends FormEditor implements IResourceChangeListene
 			e.printStackTrace();
 		}
 
+	}
+
+	private void updateManifest(IProject project, IProgressMonitor monitor) throws CoreException {
+        SubMonitor progress = SubMonitor.convert(monitor,"update manifets", 1);
+        try {
+        	
+        	IJavaProject javaProject 			= JavaCore.create(project);
+        	Set<String> referencedInterfaces	= new HashSet<String>();
+        	
+        	/*
+        	 * Verify all the provided and required services, if the specified interface is declared
+        	 * in the project it must be exported 
+        	 */
+        	for (ComponentType component : getModel().getComponent()) {
+ 
+       			/*
+    			 * TODO In principle, we could be provide a list of interfaces, but the editor only
+    			 * allow to specify a single interface
+    			 */
+        		for (ProvidesType provided : component.getProvides()) {
+        			referencedInterfaces.add(provided.getSpecifications());
+				}
+        		
+        		for (RequiresType required : component.getRequires()) {
+        			referencedInterfaces.add(required.getSpecification());
+				}
+			}
+
+        	Set<IPackageFragment> exportedPackages = new HashSet<IPackageFragment>();
+        	for (String referencedInterface : referencedInterfaces) {
+
+        		IType referencedClass = javaProject.findType(referencedInterface);
+    			if (referencedClass == null)
+    				continue;
+    			
+    			IPackageFragment packageFragment = referencedClass.getPackageFragment();
+    			if (packageFragment.isDefaultPackage() || packageFragment.getResource() == null)
+    				continue;
+    			
+    			exportedPackages.add(packageFragment);
+			}
+
+			IBundleProjectDescription bundle 		= ComponentEditorPlugin.getDefault().getDescription(project);
+        	List<IPackageExportDescription> exports = new ArrayList<IPackageExportDescription>(optional(bundle.getPackageExports()));
+        	
+        	for (IPackageFragment exportedPackage : exportedPackages) {
+        		exports.add(ComponentEditorPlugin.getDefault().getExportDescription(exportedPackage.getElementName(),null));
+			}
+        	
+        	bundle.setPackageExports(exports.toArray(new IPackageExportDescription[exports.size()]));
+			bundle.apply(progress.newChild(1));
+        	
+                          
+        } finally {
+            if (monitor != null) {
+            	monitor.done();
+            }
+        } 
+	}
+	
+	private <E> List<E> optional (E... args) {
+		return args == null ? Collections.<E>emptyList() : Arrays.asList(args);
 	}
 
 	@Override
