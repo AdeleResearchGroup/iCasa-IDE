@@ -324,7 +324,11 @@ public class MetadataEditor extends FormEditor implements IResourceChangeListene
     				continue;
     			
     			IPackageFragment packageFragment = referencedClass.getPackageFragment();
-    			if (packageFragment.isDefaultPackage() || packageFragment.getResource() == null)
+    			
+    			/*
+    			 * Do not export : the default package, packages in binary dependencies, packages in other projects
+    			 */
+    			if (packageFragment.isDefaultPackage() || packageFragment.getResource() == null || !packageFragment.getJavaProject().equals(javaProject))
     				continue;
     			
     			exportedPackages.add(packageFragment);
