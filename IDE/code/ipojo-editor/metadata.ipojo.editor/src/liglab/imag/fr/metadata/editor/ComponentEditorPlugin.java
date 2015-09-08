@@ -1,6 +1,9 @@
 package liglab.imag.fr.metadata.editor;
 
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -12,6 +15,10 @@ import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.pde.core.project.IBundleProjectDescription;
 import org.eclipse.pde.core.project.IBundleProjectService;
 import org.eclipse.pde.core.project.IPackageExportDescription;
+import org.eclipse.pde.core.project.IPackageImportDescription;
+import org.eclipse.pde.core.target.ITargetDefinition;
+import org.eclipse.pde.core.target.ITargetPlatformService;
+import org.eclipse.pde.core.target.TargetBundle;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -37,6 +44,9 @@ public class ComponentEditorPlugin extends AbstractUIPlugin {
 	private ServiceReference<IBundleProjectService> bundleProjectServiceReference;
 	private IBundleProjectService bundleProjectService;
 
+	private ServiceReference<ITargetPlatformService> targetPlatformServiceReference;
+	private ITargetPlatformService targetPlatformService;
+	
 	/**
 	 * The constructor
 	 */
@@ -57,6 +67,9 @@ public class ComponentEditorPlugin extends AbstractUIPlugin {
 		this.bundleProjectServiceReference	= context.getServiceReference(IBundleProjectService.class);
 		this.bundleProjectService			= context.getService(bundleProjectServiceReference);
 
+		this.targetPlatformServiceReference	= context.getServiceReference(ITargetPlatformService.class);
+		this.targetPlatformService			= context.getService(targetPlatformServiceReference);
+		
 	}
 
 	/*
@@ -72,6 +85,11 @@ public class ComponentEditorPlugin extends AbstractUIPlugin {
 		
 		bundleProjectService = null;
 		bundleProjectServiceReference = null;
+
+		context.ungetService(targetPlatformServiceReference);
+		
+		targetPlatformService = null;
+		targetPlatformServiceReference = null;
 		
 		plugin = null;
 		super.stop(context);		
@@ -118,4 +136,29 @@ public class ComponentEditorPlugin extends AbstractUIPlugin {
 	public IPackageExportDescription getExportDescription(String name, Version version) {
 		return bundleProjectService.newPackageExport(name, version, true, null);
 	}
+
+	public IPackageImportDescription getImportDescription(String name, Version version) {
+		return bundleProjectService.newPackageImport(name, new org.eclipse.osgi.service.resolver.VersionRange(version,true,version,true), false);
+	}
+
+	public String getTargetPlatformBundleVersion(String bundle) throws CoreException {
+
+		ITargetDefinition targetPlatform = targetPlatformService.getWorkspaceTargetHandle().getTargetDefinition();
+		targetPlatform.resolve(null);
+		for (TargetBundle targetBundle : optional(targetPlatform.getBundles())) {
+			String name 	= targetBundle.getBundleInfo().getSymbolicName();
+			String version 	= targetBundle.getBundleInfo().getVersion();
+			
+			if (name != null && name.equals(bundle)) {
+				return version;
+			}
+		}
+		
+		return null;
+	}
+	
+	private static <E> List<E> optional (E... args) {
+		return args == null ? Collections.<E>emptyList() : Arrays.asList(args);
+	}
+	
 }
