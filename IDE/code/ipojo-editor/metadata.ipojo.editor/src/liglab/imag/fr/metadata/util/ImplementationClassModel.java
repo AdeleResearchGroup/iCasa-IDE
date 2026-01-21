@@ -357,54 +357,5 @@ public class ImplementationClassModel {
 		this.compilationUnit = unit;
 	}
 
-	private void addInterface(String name) {
-		AST ast = compilationUnit.getAST();
-		compilationUnit.recordModifications();
-		TypeDeclaration td = (TypeDeclaration) compilationUnit.types().get(0);
-		td.superInterfaceTypes().add(ast.newSimpleType(ast.newName(name)));
-	}
-
-	private void saveCompilationUnit() {
-		ITextFileBufferManager bufferManager = FileBuffers.getTextFileBufferManager(); // get
-		                                                                               // the
-		                                                                               // buffer
-		                                                                               // manager
-		IPath path = compilationUnit.getJavaElement().getPath(); // unit: instance
-		                                                         // of
-		                                                         // CompilationUnit
-
-		try {
-			bufferManager.connect(path, null); // (1)
-			ITextFileBuffer textFileBuffer = bufferManager.getTextFileBuffer(path);
-			// retrieve the buffer
-			IDocument document = textFileBuffer.getDocument(); // (2)
-			// ... edit the document here ...
-
-			// ask the textEditProvider for the change information
-			TextEdit edit = compilationUnit.rewrite(document, null);
-
-			// apply the changes to the document
-			edit.apply(document);
-
-			// commit changes to underlying file
-			textFileBuffer.commit(null /* ProgressMonitor */, false /* Overwrite */); // (3)
-
-		} catch (CoreException e) {
-			e.printStackTrace();
-		} catch (MalformedTreeException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (BadLocationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			try {
-				bufferManager.disconnect(path, null);
-			} catch (CoreException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
 
 }

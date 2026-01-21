@@ -1,6 +1,5 @@
 package liglab.imag.fr.ipojo.preferences;
 
-import org.eclipse.pde.internal.core.PDECore;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -61,7 +60,7 @@ public class IPojoPreferencesPlugin extends AbstractUIPlugin {
 	 * @return service object or <code>null</code> if none
 	 */
 	public Object acquireService(String serviceName) {
-		ServiceReference reference = fBundleContext.getServiceReference(serviceName);
+		ServiceReference<?> reference = fBundleContext.getServiceReference(serviceName);
 		if (reference == null)
 			return null;
 		Object service = fBundleContext.getService(reference);

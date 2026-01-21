@@ -62,7 +62,7 @@ import org.eclipse.pde.internal.core.bundle.WorkspaceBundlePluginModelBase;
 import org.eclipse.pde.internal.core.ibundle.IBundle;
 import org.eclipse.pde.internal.core.ibundle.IBundlePluginBase;
 import org.eclipse.pde.internal.core.ibundle.IBundlePluginModelBase;
-import org.eclipse.pde.internal.core.natures.PDE;
+import org.eclipse.pde.internal.core.natures.PluginProject;
 import org.eclipse.pde.internal.core.plugin.WorkspaceFragmentModel;
 import org.eclipse.pde.internal.core.plugin.WorkspacePluginModel;
 import org.eclipse.pde.internal.core.plugin.WorkspacePluginModelBase;
@@ -83,6 +83,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.ISetSelectionTarget;
@@ -125,7 +126,7 @@ public class NewPojoProjectCreationOperation extends WorkspaceModifyOperation {
 	protected void adjustManifests(IProgressMonitor monitor, IProject project, IPluginBase bundle) throws CoreException {
 		// if libraries are exported, compute export package (173393)
 		IPluginLibrary[] libs = fModel.getPluginBase().getLibraries();
-		Set packages = new TreeSet();
+		Set<String> packages = new TreeSet<>();
 		for (int i = 0; i < libs.length; i++) {
 			String[] filters = libs[i].getContentFilters();
 			// if a library is fully exported, then export all source packages (since we don't know which source folders go with which library)
@@ -303,8 +304,8 @@ public class NewPojoProjectCreationOperation extends WorkspaceModifyOperation {
 			CoreUtility.createProject(project, fProjectProvider.getLocationPath(), null);
 			project.open(null);
 		}
-		if (!project.hasNature(PDE.PLUGIN_NATURE))
-			CoreUtility.addNatureToProject(project, PDE.PLUGIN_NATURE, null);
+		if (!project.hasNature(PluginProject.NATURE))
+			CoreUtility.addNatureToProject(project, PluginProject.NATURE, null);
 		if (!fData.isSimple() && !project.hasNature(JavaCore.NATURE_ID))
 			CoreUtility.addNatureToProject(project, JavaCore.NATURE_ID, null);
 		if (!fData.isSimple() && fData.getSourceFolderName() != null && fData.getSourceFolderName().trim().length() > 0) {
@@ -343,21 +344,15 @@ public class NewPojoProjectCreationOperation extends WorkspaceModifyOperation {
 	private void addAnnotationsLibrary(final IProject aProject) {
 
 		// Get the Java nature
-		final IJavaProject javaProject;
-		try {
-			javaProject = (IJavaProject) aProject.getNature(JavaCore.NATURE_ID);
+		final IJavaProject javaProject = JavaCore.create(aProject);
 
-		} catch (CoreException e) {
-			PDEPlugin.logErrorMessage("Can't get the Java nature " + aProject.getName());
-			return;
-		}
 
 		// Get current entries
 		final IClasspathEntry[] currentEntries;
 		try {
 			currentEntries = javaProject.getRawClasspath();
 		} catch (JavaModelException e) {
-			PDEPlugin.logErrorMessage("Error reading project classpath " + aProject.getName());
+			PDEPlugin.log("Error reading project classpath " + aProject.getName());
 			return;
 		}
 		
@@ -382,7 +377,7 @@ public class NewPojoProjectCreationOperation extends WorkspaceModifyOperation {
 		try {
 			javaProject.setRawClasspath(newEntries, null);
 		} catch (JavaModelException e) {
-			PDEPlugin.logErrorMessage("Error setting up the new project class path" + aProject.getName());
+			PDEPlugin.log("Error setting up the new project class path" + aProject.getName());
 		}
 	}
 	
@@ -475,8 +470,8 @@ public class NewPojoProjectCreationOperation extends WorkspaceModifyOperation {
 		fResult = contentWizardResult;
 	}
 
-	private Set getImportPackagesSet() {
-		TreeSet set = new TreeSet();
+	private Set<String> getImportPackagesSet() {
+		TreeSet<String> set = new TreeSet<String>();
 		if (fGenerator != null) {
 			String[] packages = fGenerator.getImportPackages();
 			for (int i = 0; i < packages.length; i++) {
@@ -562,7 +557,7 @@ public class NewPojoProjectCreationOperation extends WorkspaceModifyOperation {
 	}
 
 	private IPluginReference[] getDependencies() {
-		ArrayList result = new ArrayList();
+		ArrayList<IPluginReference> result = new ArrayList<>();
 		if (fGenerator != null) {
 			IPluginReference[] refs = fGenerator.getDependencies();
 			for (int i = 0; i < refs.length; i++) {
@@ -578,7 +573,7 @@ public class NewPojoProjectCreationOperation extends WorkspaceModifyOperation {
 			}
 		}
 					
-		return (IPluginReference[]) result.toArray(new IPluginReference[result.size()]);
+		return result.toArray(new IPluginReference[result.size()]);
 	}
 
 	protected IClasspathEntry[] getInternalClassPathEntries(IJavaProject project, IFieldData data) {
@@ -616,7 +611,7 @@ public class NewPojoProjectCreationOperation extends WorkspaceModifyOperation {
 	 * @param file file to open the editor on
 	 */
 	private void openFile(final IFile file) {
-		PDEPlugin.getDefault().getWorkbench().getDisplay().asyncExec(new Runnable() {
+		PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
 			public void run() {
 				final IWorkbenchWindow ww = PDEPlugin.getActiveWorkbenchWindow();
 				final IWorkbenchPage page = ww.getActivePage();
@@ -665,9 +660,9 @@ public class NewPojoProjectCreationOperation extends WorkspaceModifyOperation {
 	 * @return a {@link String} representing the given packages, with the exported version set correctly.<br>
 	 * If there's only one package and version is not null, package is exported with that version number. 
 	 */
-	protected String getCommaValuesFromPackagesSet(Set values, String version) {
+	protected String getCommaValuesFromPackagesSet(Set<String> values, String version) {
 		StringBuffer buffer = new StringBuffer();
-		Iterator iter = values.iterator();
+		Iterator<String> iter = values.iterator();
 		while (iter.hasNext()) {
 			if (buffer.length() > 0) {
 				buffer.append(",\n "); //$NON-NLS-1$ // space required for multiline headers
@@ -682,7 +677,7 @@ public class NewPojoProjectCreationOperation extends WorkspaceModifyOperation {
 		return buffer.toString();
 	}
 
-	private void addAllSourcePackages(IProject project, Set list) {
+	private void addAllSourcePackages(IProject project, Set<String> list) {
 		try {
 			IJavaProject javaProject = JavaCore.create(project);
 			IClasspathEntry[] classpath = javaProject.getRawClasspath();

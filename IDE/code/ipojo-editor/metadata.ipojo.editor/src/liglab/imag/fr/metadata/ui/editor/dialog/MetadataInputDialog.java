@@ -64,7 +64,7 @@ public abstract class MetadataInputDialog extends TitleAreaDialog {
 		Button button = new Button(parent, SWT.PUSH);
 		button.setText(label);
 		button.setFont(JFaceResources.getDialogFont());
-		button.setData(new Integer(id));
+		button.setData(Integer.valueOf(id));
 		button.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
 				if (isValidInput()) {

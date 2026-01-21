@@ -139,7 +139,7 @@ public class DeploymentBundleHandler extends AbstractHandler {
 		final Manifest projectManifest = getManifestContent(project);
 
 		// Get the Java project nature
-		final IJavaProject javaProject = (IJavaProject) project.getNature(JavaCore.NATURE_ID);
+		final IJavaProject javaProject = JavaCore.create(project);
 
 		// Prepare the File -> Entry map
 		final Map<IFile, String> jarEntriesMapping = new HashMap<IFile, String>();

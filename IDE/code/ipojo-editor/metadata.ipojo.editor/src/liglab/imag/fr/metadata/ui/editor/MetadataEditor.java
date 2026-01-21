@@ -362,11 +362,11 @@ public class MetadataEditor extends FormEditor implements IResourceChangeListene
         		IPackageImportDescription iPojoArchitecturePackage		= null;
         		
         		for (IPackageImportDescription importedPackage : imports) {
-        			if (importedPackage.getName().equals("org.apache.felix.ipojo")) {
+        			if (importedPackage.name().equals("org.apache.felix.ipojo")) {
         				iPojoPackage = importedPackage;
         			}
 
-        			if (importedPackage.getName().equals("org.apache.felix.ipojo.architecture")) {
+        			if (importedPackage.name().equals("org.apache.felix.ipojo.architecture")) {
         				iPojoArchitecturePackage =  importedPackage;
         			}
         		}
@@ -404,14 +404,14 @@ public class MetadataEditor extends FormEditor implements IResourceChangeListene
 	
 	private static boolean fixImport(List<IPackageImportDescription> imports, IPackageImportDescription importedPackage, String name, Version version) {
 		
-		assert importedPackage == null || importedPackage.getName().equals(name);
+		assert importedPackage == null || importedPackage.name().equals(name);
 		
 		if (importedPackage == null) {
 			imports.add(ComponentEditorPlugin.getDefault().getImportDescription(name, version));
 			return true;
 		}
 		
-		if (importedPackage != null && importedPackage.getVersionRange() != null && !importedPackage.getVersionRange().includes(version)) {
+		if (importedPackage != null && importedPackage.version() != null && !importedPackage.version().includes(version)) {
 			imports.remove(importedPackage);
 			imports.add(ComponentEditorPlugin.getDefault().getImportDescription(name, version));
 			return true;

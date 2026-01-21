@@ -1,16 +1,11 @@
 package liglab.imag.fr.ipojo.preferences.page;
 
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Properties;
 
 import liglab.imag.fr.ipojo.preferences.IPojoPreferencesPlugin;
 import liglab.imag.fr.ipojo.preferences.util.IPojoPreferencesContants;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.DirectoryFieldEditor;
 import org.eclipse.jface.preference.FieldEditor;

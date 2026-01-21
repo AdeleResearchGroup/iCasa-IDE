@@ -10,8 +10,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
+
 import org.eclipse.pde.core.project.IBundleProjectDescription;
 import org.eclipse.pde.core.project.IBundleProjectService;
 import org.eclipse.pde.core.project.IPackageExportDescription;
@@ -19,10 +21,13 @@ import org.eclipse.pde.core.project.IPackageImportDescription;
 import org.eclipse.pde.core.target.ITargetDefinition;
 import org.eclipse.pde.core.target.ITargetPlatformService;
 import org.eclipse.pde.core.target.TargetBundle;
+
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
+import org.osgi.framework.VersionRange;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -134,11 +139,11 @@ public class ComponentEditorPlugin extends AbstractUIPlugin {
 
 	
 	public IPackageExportDescription getExportDescription(String name, Version version) {
-		return bundleProjectService.newPackageExport(name, version, true, null);
+		return bundleProjectService.newPackageExport(name, version, true, Collections.emptyList());
 	}
 
 	public IPackageImportDescription getImportDescription(String name, Version version) {
-		return bundleProjectService.newPackageImport(name, new org.eclipse.osgi.service.resolver.VersionRange(version,true,version,true), false);
+		return bundleProjectService.newPackageImport(name, new VersionRange(VersionRange.LEFT_CLOSED,version,version,VersionRange.RIGHT_CLOSED), false);
 	}
 
 	public String getTargetPlatformBundleVersion(String bundle) throws CoreException {
@@ -157,6 +162,7 @@ public class ComponentEditorPlugin extends AbstractUIPlugin {
 		return null;
 	}
 	
+	@SafeVarargs
 	private static <E> List<E> optional (E... args) {
 		return args == null ? Collections.<E>emptyList() : Arrays.asList(args);
 	}
